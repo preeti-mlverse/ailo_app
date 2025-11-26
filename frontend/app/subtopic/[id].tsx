@@ -58,8 +58,13 @@ export default function SubtopicDetailScreen() {
       Speech.stop();
       setIsSpeaking(false);
     } else {
-      setIsSpeaking(true);
       const currentCard = microcontent[currentCardIndex];
+      if (!currentCard || !currentCard[activeMode]) {
+        Alert.alert('Error', 'Content not available for speech');
+        return;
+      }
+      
+      setIsSpeaking(true);
       const textToSpeak = currentCard[activeMode];
       
       Speech.speak(textToSpeak, {
