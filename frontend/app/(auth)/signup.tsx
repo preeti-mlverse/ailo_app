@@ -68,20 +68,21 @@ export default function SignupScreen() {
         <View style={styles.form}>
           <TextInput
             style={styles.input}
-            placeholder="Full Name *"
-            placeholderTextColor="#666"
-            value={formData.full_name}
-            onChangeText={(text) => setFormData({ ...formData, full_name: text })}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Email *"
+            placeholder="Email Address *"
             placeholderTextColor="#666"
             keyboardType="email-address"
             autoCapitalize="none"
             value={formData.email}
             onChangeText={(text) => setFormData({ ...formData, email: text })}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Mobile Number *"
+            placeholderTextColor="#666"
+            keyboardType="phone-pad"
+            value={formData.mobile}
+            onChangeText={(text) => setFormData({ ...formData, mobile: text })}
           />
 
           <TextInput
@@ -92,75 +93,6 @@ export default function SignupScreen() {
             value={formData.password}
             onChangeText={(text) => setFormData({ ...formData, password: text })}
           />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Age *"
-            placeholderTextColor="#666"
-            keyboardType="number-pad"
-            value={formData.age}
-            onChangeText={(text) => setFormData({ ...formData, age: text })}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Grade"
-            placeholderTextColor="#666"
-            keyboardType="number-pad"
-            value={formData.grade}
-            onChangeText={(text) => setFormData({ ...formData, grade: text })}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Board (e.g., CBSE, ICSE)"
-            placeholderTextColor="#666"
-            value={formData.board}
-            onChangeText={(text) => setFormData({ ...formData, board: text })}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="School"
-            placeholderTextColor="#666"
-            value={formData.school}
-            onChangeText={(text) => setFormData({ ...formData, school: text })}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="City"
-            placeholderTextColor="#666"
-            value={formData.city}
-            onChangeText={(text) => setFormData({ ...formData, city: text })}
-          />
-
-          {parseInt(formData.age) < 18 && (
-            <>
-              <Text style={styles.sectionTitle}>Parental Consent Required</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Parent Email *"
-                placeholderTextColor="#666"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={formData.parent_email}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, parent_email: text })
-                }
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Parent Phone *"
-                placeholderTextColor="#666"
-                keyboardType="phone-pad"
-                value={formData.parent_phone}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, parent_phone: text })
-                }
-              />
-            </>
-          )}
 
           <TouchableOpacity
             style={styles.checkboxContainer}
