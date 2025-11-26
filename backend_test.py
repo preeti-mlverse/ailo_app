@@ -271,18 +271,21 @@ class LearnTabTester:
         print("\n=== TESTING QUIZ SUBMIT ENDPOINT (NEW) ===")
         
         try:
-            submit_data = {
+            # quiz_id and subtopic_id are query parameters, answers is the body
+            answers_data = [
+                {
+                    "question_id": question_id,
+                    "user_answer": user_answer
+                }
+            ]
+            
+            params = {
                 "quiz_id": quiz_id,
-                "subtopic_id": subtopic_id,
-                "answers": [
-                    {
-                        "question_id": question_id,
-                        "user_answer": user_answer
-                    }
-                ]
+                "subtopic_id": subtopic_id
             }
             
-            response = requests.post(f"{self.base_url}/quiz/submit", json=submit_data, headers=self.get_headers())
+            response = requests.post(f"{self.base_url}/quiz/submit", 
+                                   params=params, json=answers_data, headers=self.get_headers())
             if response.status_code == 200:
                 data = response.json()
                 required_fields = ["score", "correct_count", "xp_earned"]
