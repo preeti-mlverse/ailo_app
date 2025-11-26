@@ -127,11 +127,19 @@ export default function LearnScreen() {
               <View style={styles.chapterContent}>
                 <View style={styles.chapterHeader}>
                   <View style={styles.chapterInfo}>
-                    <Text style={styles.chapterTitle}>{chapter.title || chapter.chapter_name}</Text>
-                    <Text style={styles.chapterSubtitle}>{chapter.description || 'Learn Python Programming'}</Text>
+                    <Text style={[styles.chapterTitle, chapter.locked && styles.lockedText]}>
+                      {chapter.title || chapter.chapter_name}
+                    </Text>
+                    <Text style={[styles.chapterSubtitle, chapter.locked && styles.lockedText]}>
+                      {chapter.description || 'Learn Python Programming'}
+                    </Text>
                   </View>
                   <View style={styles.chapterIconContainer}>
-                    <Ionicons name="logo-python" size={28} color="#E6B800" />
+                    {chapter.locked ? (
+                      <Ionicons name="lock-closed" size={28} color="#666666" />
+                    ) : (
+                      <Ionicons name="logo-python" size={28} color="#E6B800" />
+                    )}
                   </View>
                 </View>
                 
