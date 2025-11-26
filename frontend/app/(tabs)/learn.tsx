@@ -348,4 +348,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1E1E2E',
   },
+  lockedCard: {
+    opacity: 0.6,
+  },
+  lockedText: {
+    color: '#666666',
+  },
 });
