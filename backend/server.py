@@ -1524,6 +1524,336 @@ async def submit_quiz(
     }
 
 
+# ============================================================================
+# PRACTICE TAB ENDPOINTS
+# ============================================================================
+
+@api_router.get("/practice/dashboard")
+async def get_practice_dashboard(current_user = Depends(get_current_user)):
+    """Get practice dashboard with stats and available quizzes"""
+    user_id = current_user["user_id"]
+    
+    # Get user stats
+    user = await db.users.find_one({"user_id": user_id})
+    
+    # Get quiz history
+    quiz_history = await db.quiz_attempts.find({"user_id": user_id}).sort("completed_at", DESCENDING).limit(10).to_list(10)
+    
+    # Calculate stats
+    total_quizzes = len(quiz_history)
+    if total_quizzes > 0:
+        avg_score = sum(q.get("score", 0) for q in quiz_history) / total_quizzes
+    else:
+        avg_score = 0
+    
+    # Get chapter quizzes with user progress
+    chapter_quizzes = await db.chapter_quizzes.find({}).sort("chapter_number", ASCENDING).to_list(10)
+    
+    for quiz in chapter_quizzes:
+        # Get best attempt for this quiz
+        best_attempt = await db.quiz_attempts.find_one(
+            {"user_id": user_id, "quiz_id": quiz["quiz_id"]},
+            sort=[("score", DESCENDING)]
+        )
+        quiz["best_score"] = best_attempt.get("score", 0) if best_attempt else None
+        quiz["attempts"] = await db.quiz_attempts.count_documents(
+            {"user_id": user_id, "quiz_id": quiz["quiz_id"]}
+        )
+        quiz["last_attempted"] = best_attempt.get("completed_at") if best_attempt else None
+        quiz["completed"] = quiz["best_score"] is not None and quiz["best_score"] >= 70
+    
+    # Get daily challenge status
+    today = datetime.utcnow().date()
+    daily_challenge = await db.daily_challenges.find_one({
+        "user_id": user_id,
+        "date": today
+    })
+    
+    return {
+        "stats": {
+            "total_quizzes": total_quizzes,
+            "avg_score": round(avg_score, 1),
+            "streak": user.get("streak", 0),
+            "total_xp": user.get("xp", 0)
+        },
+        "chapter_quizzes": chapter_quizzes,
+        "daily_challenge": {
+            "available": daily_challenge is None,
+            "completed": daily_challenge.get("completed", False) if daily_challenge else False,
+            "score": daily_challenge.get("score") if daily_challenge else None
+        },
+        "recent_history": quiz_history[:5]
+    }
+
+
+@api_router.get("/practice/quiz/{quiz_id}")
+async def get_quiz(quiz_id: str, current_user = Depends(get_current_user)):
+    """Get quiz questions for a specific quiz"""
+    
+    # Get quiz metadata
+    quiz = await db.chapter_quizzes.find_one({"quiz_id": quiz_id})
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    
+    # Get questions for this quiz
+    questions = await db.practice_questions.find({"quiz_id": quiz_id}).sort("order", ASCENDING).to_list(100)
+    
+    # Remove correct answers and explanations from response
+    sanitized_questions = []
+    for q in questions:
+        sanitized_questions.append({
+            "question_id": q["question_id"],
+            "question_text": q["question_text"],
+            "options": q["options"],
+            "difficulty": q["difficulty"],
+            "topic": q["topic"]
+        })
+    
+    return {
+        "quiz": {
+            "quiz_id": quiz["quiz_id"],
+            "chapter_name": quiz["chapter_name"],
+            "total_questions": quiz["total_questions"],
+            "time_limit": quiz.get("time_limit"),
+            "xp_reward": quiz["xp_reward"]
+        },
+        "questions": sanitized_questions
+    }
+
+
+class QuizSubmission(BaseModel):
+    quiz_id: str
+    answers: List[Dict[str, str]]  # [{"question_id": "...", "answer": "..."}]
+    time_taken: Optional[int] = None
+
+
+@api_router.post("/practice/quiz/submit")
+async def submit_practice_quiz(submission: QuizSubmission, current_user = Depends(get_current_user)):
+    """Submit quiz answers and get results"""
+    user_id = current_user["user_id"]
+    
+    # Get quiz
+    quiz = await db.chapter_quizzes.find_one({"quiz_id": submission.quiz_id})
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    
+    # Get all questions for this quiz
+    questions = await db.practice_questions.find({"quiz_id": submission.quiz_id}).to_list(100)
+    questions_map = {q["question_id"]: q for q in questions}
+    
+    # Grade the quiz
+    correct_count = 0
+    total_questions = len(submission.answers)
+    detailed_results = []
+    
+    for answer in submission.answers:
+        question_id = answer.get("question_id")
+        user_answer = answer.get("answer")
+        
+        question = questions_map.get(question_id)
+        if not question:
+            continue
+        
+        is_correct = question["correct_answer"] == user_answer
+        if is_correct:
+            correct_count += 1
+        
+        detailed_results.append({
+            "question_id": question_id,
+            "question_text": question["question_text"],
+            "user_answer": user_answer,
+            "correct_answer": question["correct_answer"],
+            "is_correct": is_correct,
+            "explanation": question["explanation"],
+            "difficulty": question["difficulty"]
+        })
+    
+    score = (correct_count / total_questions * 100) if total_questions > 0 else 0
+    xp_earned = int(correct_count * 10)
+    
+    # Award XP
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$inc": {"xp": xp_earned}}
+    )
+    
+    # Update streak
+    await update_user_streak(user_id)
+    
+    # Save quiz attempt
+    attempt = {
+        "attempt_id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "quiz_id": submission.quiz_id,
+        "chapter_name": quiz["chapter_name"],
+        "score": round(score, 1),
+        "correct_count": correct_count,
+        "total_questions": total_questions,
+        "xp_earned": xp_earned,
+        "time_taken": submission.time_taken,
+        "completed_at": datetime.utcnow()
+    }
+    await db.quiz_attempts.insert_one(attempt)
+    
+    return {
+        "score": round(score, 1),
+        "correct_count": correct_count,
+        "total_questions": total_questions,
+        "xp_earned": xp_earned,
+        "detailed_results": detailed_results,
+        "attempt_id": attempt["attempt_id"]
+    }
+
+
+@api_router.get("/practice/stats")
+async def get_practice_stats(current_user = Depends(get_current_user)):
+    """Get detailed practice statistics"""
+    user_id = current_user["user_id"]
+    
+    # Get all quiz attempts
+    all_attempts = await db.quiz_attempts.find({"user_id": user_id}).sort("completed_at", ASCENDING).to_list(1000)
+    
+    if not all_attempts:
+        return {
+            "total_quizzes": 0,
+            "avg_score": 0,
+            "total_time": 0,
+            "score_trend": [],
+            "performance_by_chapter": [],
+            "recent_attempts": []
+        }
+    
+    # Calculate stats
+    total_quizzes = len(all_attempts)
+    avg_score = sum(a["score"] for a in all_attempts) / total_quizzes
+    total_time = sum(a.get("time_taken", 0) for a in all_attempts)
+    
+    # Score trend (last 10 attempts)
+    score_trend = [
+        {
+            "date": a["completed_at"].strftime("%b %d"),
+            "score": a["score"]
+        }
+        for a in all_attempts[-10:]
+    ]
+    
+    # Performance by chapter
+    chapter_performance = {}
+    for attempt in all_attempts:
+        chapter = attempt["chapter_name"]
+        if chapter not in chapter_performance:
+            chapter_performance[chapter] = {"scores": [], "best": 0}
+        chapter_performance[chapter]["scores"].append(attempt["score"])
+        chapter_performance[chapter]["best"] = max(chapter_performance[chapter]["best"], attempt["score"])
+    
+    performance_by_chapter = [
+        {
+            "chapter": chapter,
+            "avg_score": round(sum(data["scores"]) / len(data["scores"]), 1),
+            "best_score": round(data["best"], 1),
+            "attempts": len(data["scores"])
+        }
+        for chapter, data in chapter_performance.items()
+    ]
+    
+    return {
+        "total_quizzes": total_quizzes,
+        "avg_score": round(avg_score, 1),
+        "total_time": total_time,
+        "score_trend": score_trend,
+        "performance_by_chapter": performance_by_chapter,
+        "recent_attempts": [
+            {
+                "chapter": a["chapter_name"],
+                "score": a["score"],
+                "date": a["completed_at"].strftime("%b %d, %I:%M %p"),
+                "xp_earned": a["xp_earned"]
+            }
+            for a in all_attempts[-10:]
+        ][::-1]  # Reverse to show most recent first
+    }
+
+
+@api_router.get("/practice/daily-challenge")
+async def get_daily_challenge(current_user = Depends(get_current_user)):
+    """Get or generate today's daily adaptive challenge"""
+    user_id = current_user["user_id"]
+    
+    today = datetime.utcnow().date()
+    
+    # Check if daily challenge already exists
+    existing_challenge = await db.daily_challenges.find_one({
+        "user_id": user_id,
+        "date": today
+    })
+    
+    if existing_challenge:
+        if existing_challenge.get("completed"):
+            return {
+                "available": False,
+                "completed": True,
+                "score": existing_challenge.get("score")
+            }
+        else:
+            # Return existing challenge
+            return {
+                "available": True,
+                "completed": False,
+                "challenge_id": existing_challenge["challenge_id"],
+                "questions": existing_challenge["questions"]
+            }
+    
+    # Generate new adaptive challenge (5 questions)
+    # For MVP, randomly select 5 questions from different difficulties
+    questions = []
+    
+    # Get 2 easy, 2 medium, 1 hard
+    easy_qs = await db.practice_questions.find({"difficulty": "easy"}).to_list(100)
+    medium_qs = await db.practice_questions.find({"difficulty": "medium"}).to_list(100)
+    hard_qs = await db.practice_questions.find({"difficulty": "hard"}).to_list(100)
+    
+    import random
+    selected_questions = []
+    if len(easy_qs) >= 2:
+        selected_questions.extend(random.sample(easy_qs, 2))
+    if len(medium_qs) >= 2:
+        selected_questions.extend(random.sample(medium_qs, 2))
+    if len(hard_qs) >= 1:
+        selected_questions.extend(random.sample(hard_qs, 1))
+    
+    random.shuffle(selected_questions)
+    
+    sanitized_questions = [
+        {
+            "question_id": q["question_id"],
+            "question_text": q["question_text"],
+            "options": q["options"],
+            "difficulty": q["difficulty"],
+            "topic": q["topic"]
+        }
+        for q in selected_questions[:5]
+    ]
+    
+    # Save challenge
+    challenge_id = str(uuid.uuid4())
+    challenge = {
+        "challenge_id": challenge_id,
+        "user_id": user_id,
+        "date": today,
+        "questions": sanitized_questions,
+        "completed": False,
+        "created_at": datetime.utcnow()
+    }
+    await db.daily_challenges.insert_one(challenge)
+    
+    return {
+        "available": True,
+        "completed": False,
+        "challenge_id": challenge_id,
+        "questions": sanitized_questions
+    }
+
+
 # Include router
 app.include_router(api_router)
 
