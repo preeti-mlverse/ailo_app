@@ -161,6 +161,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1E1E2E',
   },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  emptyState: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#A0A0B0',
+  },
   journeyHeader: {
     backgroundColor: '#FFF8DC',
     paddingTop: 60,
