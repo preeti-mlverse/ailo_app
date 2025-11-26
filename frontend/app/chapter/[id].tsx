@@ -30,19 +30,22 @@ export default function ChapterDetailScreen() {
     try {
       setLoading(true);
       const response = await learningAPI.getTopics(id as string);
-      setTopics(response.data);
+      console.log('Topics response:', response.data);
       
-      // Assume first topic has chapter info or fetch chapters
-      if (response.data.length > 0) {
-        // You can fetch chapter details if needed
+      const topicsData = Array.isArray(response.data) ? response.data : [];
+      setTopics(topicsData);
+      
+      if (topicsData.length > 0) {
         setChapterInfo({
           title: 'Unit 1: Python Programming-II',
           subtitle: 'Your foundation for AI development',
         });
+      } else {
+        console.log('No topics found for chapter:', id);
       }
     } catch (error) {
       console.error('Error fetching topics:', error);
-      Alert.alert('Error', 'Failed to load topics');
+      Alert.alert('Error', 'Failed to load topics. Please try again.');
     } finally {
       setLoading(false);
     }
