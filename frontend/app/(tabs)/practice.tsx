@@ -58,7 +58,7 @@ export default function PracticeScreen() {
     Alert.alert('Coming Soon', 'Detailed stats will appear here!');
   };
 
-  if (loading) {
+  if (loading || !dashboard) {
     return (
       <View style={[styles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color="#E6B800" />
@@ -67,7 +67,9 @@ export default function PracticeScreen() {
     );
   }
 
-  const isFirstTime = dashboard?.stats?.total_quizzes === 0;
+  const isFirstTime = dashboard?.stats?.total_quizzes === 0 || false;
+  const stats = dashboard?.stats || { total_quizzes: 0, avg_score: 0, streak: 0, total_xp: 0 };
+  const chapterQuizzes = dashboard?.chapter_quizzes || [];
 
   return (
     <ScrollView
