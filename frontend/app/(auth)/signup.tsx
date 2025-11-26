@@ -20,18 +20,9 @@ export default function SignupScreen() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
+    mobile: '',
     password: '',
-    full_name: '',
-    age: '',
-    grade: '',
-    board: 'CBSE',
-    school: '',
-    city: '',
-    state: '',
-    language: 'English',
     role: 'student',
-    parent_email: '',
-    parent_phone: '',
     terms_accepted: false,
     privacy_accepted: false,
   });
