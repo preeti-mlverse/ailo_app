@@ -185,8 +185,8 @@ export default function ChapterDetailScreen() {
                           style={styles.lessonRow}
                           onPress={() => {
                             toggleLesson(lesson.id);
-                            // Navigate to lesson detail
-                            router.push(`/topic/${lesson.id}`);
+                            // Navigate to subtopics list
+                            router.push(`/subtopics/${lesson.id}`);
                           }}
                         >
                           <TouchableOpacity
