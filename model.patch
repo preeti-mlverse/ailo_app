@@ -1,105 +1,110 @@
-diff --git a/frontend/app/topic/[id].tsx b/frontend/app/topic/[id].tsx
-index 4e91303..37a969a 100644
---- a/frontend/app/topic/[id].tsx
-+++ b/frontend/app/topic/[id].tsx
-@@ -127,7 +127,8 @@ export default function TopicDetailScreen() {
-           <Ionicons name="arrow-back" size={24} color="#E6B800" />
-         </TouchableOpacity>
-         <View style={styles.headerContent}>
--          <Text style={styles.headerTitle} numberOfLines={1}>{lesson.title}</Text>
-+          <Text style={styles.chapterName}>{chapterName}</Text>
-+          <Text style={styles.topicName}>Topic: {topicName}</Text>
-         </View>
-         <View style={styles.headerRight}>
-           <Text style={styles.cardCounter}>
-@@ -338,6 +339,18 @@ const styles = StyleSheet.create({
-     color: '#FFFFFF',
-     textAlign: 'center',
-   },
-+  chapterName: {
-+    fontSize: 16,
-+    fontWeight: 'bold',
-+    color: '#FFFFFF',
-+    textAlign: 'center',
-+  },
-+  topicName: {
-+    fontSize: 12,
-+    color: '#A0A0B0',
-+    textAlign: 'center',
-+    marginTop: 2,
-+  },
-   headerRight: {
-     padding: 8,
-   },
 diff --git a/model.patch b/model.patch
-index c117293..e69de29 100644
+index 547fe3b..e69de29 100644
 --- a/model.patch
 +++ b/model.patch
-@@ -1,67 +0,0 @@
--diff --git a/frontend/app/chapter/[id].tsx b/frontend/app/chapter/[id].tsx
--index 6906ece..f9afa8c 100644
----- a/frontend/app/chapter/[id].tsx
--+++ b/frontend/app/chapter/[id].tsx
--@@ -185,8 +185,8 @@ export default function ChapterDetailScreen() {
--                           style={styles.lessonRow}
--                           onPress={() => {
--                             toggleLesson(lesson.id);
---                            // Navigate to lesson detail
---                            router.push(`/topic/${lesson.id}`);
--+                            // Navigate to subtopics list
--+                            router.push(`/subtopics/${lesson.id}`);
--                           }}
--                         >
--                           <TouchableOpacity
+@@ -1,105 +0,0 @@
+-diff --git a/frontend/app/topic/[id].tsx b/frontend/app/topic/[id].tsx
+-index 4e91303..37a969a 100644
+---- a/frontend/app/topic/[id].tsx
+-+++ b/frontend/app/topic/[id].tsx
+-@@ -127,7 +127,8 @@ export default function TopicDetailScreen() {
+-           <Ionicons name="arrow-back" size={24} color="#E6B800" />
+-         </TouchableOpacity>
+-         <View style={styles.headerContent}>
+--          <Text style={styles.headerTitle} numberOfLines={1}>{lesson.title}</Text>
+-+          <Text style={styles.chapterName}>{chapterName}</Text>
+-+          <Text style={styles.topicName}>Topic: {topicName}</Text>
+-         </View>
+-         <View style={styles.headerRight}>
+-           <Text style={styles.cardCounter}>
+-@@ -338,6 +339,18 @@ const styles = StyleSheet.create({
+-     color: '#FFFFFF',
+-     textAlign: 'center',
+-   },
+-+  chapterName: {
+-+    fontSize: 16,
+-+    fontWeight: 'bold',
+-+    color: '#FFFFFF',
+-+    textAlign: 'center',
+-+  },
+-+  topicName: {
+-+    fontSize: 12,
+-+    color: '#A0A0B0',
+-+    textAlign: 'center',
+-+    marginTop: 2,
+-+  },
+-   headerRight: {
+-     padding: 8,
+-   },
 -diff --git a/model.patch b/model.patch
--index 338d0db..e69de29 100644
+-index c117293..e69de29 100644
 ---- a/model.patch
 -+++ b/model.patch
--@@ -1,47 +0,0 @@
---diff --git a/backend/server.py b/backend/server.py
---index ea9d9b7..9e70346 100644
------ a/backend/server.py
---+++ b/backend/server.py
---@@ -64,17 +64,12 @@ class UserBase(BaseModel):
---     full_name: str
---     role: str = "student"
--- 
----class UserCreate(UserBase):
---+class UserCreate(BaseModel):
---+    email: EmailStr
---+    mobile: str
---     password: str
----    age: Optional[int] = None
----    grade: Optional[int] = None
----    board: Optional[str] = None
----    school: Optional[str] = None
----    city: Optional[str] = None
----    state: Optional[str] = None
----    language: Optional[str] = "English"
----    parent_email: Optional[str] = None
----    parent_phone: Optional[str] = None
---+    role: str = "student"
---+    full_name: Optional[str] = "User"
---     terms_accepted: bool = False
---     privacy_accepted: bool = False
--- 
---@@ -224,18 +219,10 @@ async def signup(user_data: UserCreate):
---     user_doc = {
---         "user_id": user_id,
---         "email": user_data.email,
---+        "mobile": user_data.mobile,
---         "password": hashed_password,
---         "full_name": user_data.full_name,
---         "role": user_data.role,
----        "age": user_data.age,
----        "grade": user_data.grade,
----        "board": user_data.board,
----        "school": user_data.school,
----        "city": user_data.city,
----        "state": user_data.state,
----        "language": user_data.language,
----        "parent_email": user_data.parent_email,
----        "parent_phone": user_data.parent_phone,
---         "terms_accepted": user_data.terms_accepted,
---         "privacy_accepted": user_data.privacy_accepted,
---         "created_at": datetime.utcnow(),
+-@@ -1,67 +0,0 @@
+--diff --git a/frontend/app/chapter/[id].tsx b/frontend/app/chapter/[id].tsx
+--index 6906ece..f9afa8c 100644
+----- a/frontend/app/chapter/[id].tsx
+--+++ b/frontend/app/chapter/[id].tsx
+--@@ -185,8 +185,8 @@ export default function ChapterDetailScreen() {
+--                           style={styles.lessonRow}
+--                           onPress={() => {
+--                             toggleLesson(lesson.id);
+---                            // Navigate to lesson detail
+---                            router.push(`/topic/${lesson.id}`);
+--+                            // Navigate to subtopics list
+--+                            router.push(`/subtopics/${lesson.id}`);
+--                           }}
+--                         >
+--                           <TouchableOpacity
+--diff --git a/model.patch b/model.patch
+--index 338d0db..e69de29 100644
+----- a/model.patch
+--+++ b/model.patch
+--@@ -1,47 +0,0 @@
+---diff --git a/backend/server.py b/backend/server.py
+---index ea9d9b7..9e70346 100644
+------ a/backend/server.py
+---+++ b/backend/server.py
+---@@ -64,17 +64,12 @@ class UserBase(BaseModel):
+---     full_name: str
+---     role: str = "student"
+--- 
+----class UserCreate(UserBase):
+---+class UserCreate(BaseModel):
+---+    email: EmailStr
+---+    mobile: str
+---     password: str
+----    age: Optional[int] = None
+----    grade: Optional[int] = None
+----    board: Optional[str] = None
+----    school: Optional[str] = None
+----    city: Optional[str] = None
+----    state: Optional[str] = None
+----    language: Optional[str] = "English"
+----    parent_email: Optional[str] = None
+----    parent_phone: Optional[str] = None
+---+    role: str = "student"
+---+    full_name: Optional[str] = "User"
+---     terms_accepted: bool = False
+---     privacy_accepted: bool = False
+--- 
+---@@ -224,18 +219,10 @@ async def signup(user_data: UserCreate):
+---     user_doc = {
+---         "user_id": user_id,
+---         "email": user_data.email,
+---+        "mobile": user_data.mobile,
+---         "password": hashed_password,
+---         "full_name": user_data.full_name,
+---         "role": user_data.role,
+----        "age": user_data.age,
+----        "grade": user_data.grade,
+----        "board": user_data.board,
+----        "school": user_data.school,
+----        "city": user_data.city,
+----        "state": user_data.state,
+----        "language": user_data.language,
+----        "parent_email": user_data.parent_email,
+----        "parent_phone": user_data.parent_phone,
+---         "terms_accepted": user_data.terms_accepted,
+---         "privacy_accepted": user_data.privacy_accepted,
+---         "created_at": datetime.utcnow(),
