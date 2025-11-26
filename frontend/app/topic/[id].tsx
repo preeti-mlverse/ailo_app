@@ -56,13 +56,15 @@ const LESSON_CONTENT: any = {
 
 export default function TopicDetailScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { id, chapter, topic } = useLocalSearchParams();
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [activeMode, setActiveMode] = useState<'story' | 'relate' | 'why'>('story');
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const lesson = LESSON_CONTENT[id as string] || LESSON_CONTENT.l1;
   const currentCard = lesson.cards[currentCardIndex];
+  const chapterName = chapter as string || 'Python Programming';
+  const topicName = topic as string || lesson.title;
 
   useEffect(() => {
     // Stop speech when component unmounts or card changes
