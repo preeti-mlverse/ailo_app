@@ -216,10 +216,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E1E2E',
   },
   heroSection: {
-    backgroundColor: '#E6B800',
-    paddingVertical: 40,
+    backgroundColor: '#2D2D3D',
+    paddingVertical: 32,
     paddingHorizontal: 24,
-    paddingTop: 60,
     alignItems: 'center',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
