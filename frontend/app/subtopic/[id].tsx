@@ -88,15 +88,38 @@ export default function SubtopicDetailScreen() {
         console.error('Error updating progress:', error);
       }
     } else {
-      // Mark as completed and navigate to quiz
+      // Mark as completed and navigate to celebration
       try {
         await learningAPI.updateSubtopicProgress(id as string, microcontent.length, true);
-        router.push(`/quiz/celebration?subtopicId=${id}&subtopicTitle=${encodeURIComponent(subtopicInfo?.title || 'Subtopic')}`);
+        router.push({
+          pathname: '/quiz/celebration',
+          params: {
+            subtopicId: id,
+            subtopicTitle: subtopicInfo?.title || 'Subtopic',
+            topicId: subtopicInfo?.topic_id || '',
+            xpEarned: 20,
+          },
+        });
       } catch (error) {
         console.error('Error completing subtopic:', error);
         Alert.alert('Error', 'Failed to complete subtopic');
       }
     }
+  };
+
+  const handleSkip = () => {
+    Alert.alert(
+      'Skip Subtopic',
+      'Are you sure you want to skip this subtopic? You can come back to it later.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Skip', 
+          onPress: () => router.back(),
+          style: 'destructive',
+        },
+      ]
+    );
   };
 
   const handlePrevious = () => {
