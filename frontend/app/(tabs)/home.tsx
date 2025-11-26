@@ -70,8 +70,30 @@ export default function HomeScreen() {
     >
       {/* Hero Section */}
       <View style={styles.heroSection}>
-        <NovaMascot animation="wave" size={120} />
-        <Text style={styles.heroText}>Ready to start your AI Journey!</Text>
+        <Text style={styles.welcomeText}>Welcome back, {user?.name || 'Learner'}! 👋</Text>
+        <NovaMascot animation="wave" size={100} />
+        <Text style={styles.heroText}>Ready to continue your AI Journey!</Text>
+      </View>
+
+      {/* Stats Section */}
+      <View style={styles.statsSection}>
+        <View style={styles.statCard}>
+          <Ionicons name="star" size={32} color="#E6B800" />
+          <Text style={styles.statValue}>{user?.xp || 0}</Text>
+          <Text style={styles.statLabel}>Total XP</Text>
+        </View>
+        
+        <View style={styles.statCard}>
+          <Ionicons name="flame" size={32} color="#FF6B6B" />
+          <Text style={styles.statValue}>{user?.streak || 0}</Text>
+          <Text style={styles.statLabel}>Day Streak</Text>
+        </View>
+        
+        <View style={styles.statCard}>
+          <Ionicons name="checkmark-circle" size={32} color="#4ECDC4" />
+          <Text style={styles.statValue}>{dashboard?.completed_lessons || 0}</Text>
+          <Text style={styles.statLabel}>Completed</Text>
+        </View>
       </View>
 
       {/* Learning Journey Section */}
