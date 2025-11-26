@@ -44,6 +44,15 @@ export default function LearnScreen() {
     setRefreshing(false);
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#E6B800" />
+        <Text style={styles.loadingText}>Loading chapters...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Journey Visualization Header */}
