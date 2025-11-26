@@ -1,0 +1,108 @@
+<analysis>
+The trajectory documents the development of the AILO EdTech mobile app from inception to a functional prototype. The initial request was to build the app based on a PDF description, using a mascot named Nova. The AI engineer began by clarifying requirements for authentication, AI features (confirming use of a user-provided OpenAI key), email, and storage.
+
+Development proceeded in phases. The backend was built first using FastAPI and MongoDB, with models and endpoints for users, content, etc. The frontend followed, using Expo and React Native, with  for navigation. The engineer created a comprehensive file structure for authentication, main app tabs (Home, Learn, Practice, Community, Profile), and dynamic routes for content (, ).
+
+Significant user interaction guided the development. The engineer implemented UI/UX changes based on explicit feedback and screenshots, including:
+- Redesigning the home screen layout and color scheme (switching from teal to mustard yellow).
+- Simplifying the signup and creating a new, multi-step onboarding flow.
+- Removing the background from the mascot's animated GIF and optimizing it.
+- Fixing a bug with bottom tab navigation labels.
+- Building out the multi-level Learn tab flow from chapters to topics, subtopics, and interactive micro-content cards with Text-to-Speech.
+- Creating a post-lesson quiz flow with celebration and results screens.
+
+The process also involved debugging, such as fixing  import errors, resolving bundler cache issues, and correcting syntax errors in template literals. The most recent task involves structuring the Learn tab content based on a user-provided Excel sheet, for which the engineer has proposed a detailed flow and is awaiting user confirmation.
+
+The user's primary language is English. The next agent must respond in English.
+</analysis>
+
+<product_requirements>
+The AILO application is an AI-powered EdTech mobile app designed to teach users about Artificial Intelligence.
+
+**Core User-Facing Features:**
+1.  **Onboarding & Authentication:** A simplified signup process requests only email, mobile number, and password. This is followed by a progressive onboarding flow asking for the user's age, class, board, learning goals (curriculum vs. industry), current knowledge level, and daily time commitment.
+2.  **Home Screen:** A personalized dashboard that welcomes the user, displays their learning progress (streak, lessons completed, time spent), and provides quick access to continue learning or start new topics. The UI features a dark theme with mustard yellow accents.
+3.  **Learn Tab:** The primary learning section. It presents content in a hierarchical structure:
+    *   **Journey View:** A visual representation of the learning path with chapters listed below.
+    *   **Chapters -> Topics -> Subtopics:** Users navigate from a list of chapters to topics within that chapter, then to a list of subtopics.
+    *   **Microcontent Cards:** Each subtopic is broken down into interactive cards. Each card features three learning modes (Story, Relate, Why), a Text-to-Speech listen option, and navigation to previous/next cards.
+4.  **Quiz & Assessment:** After completing all microcontent cards for a subtopic, the user is shown a celebration screen and then presented with a short quiz (e.g., 5 questions) to assess their understanding. A results screen displays their performance, XP earned, and streaks.
+5.  **AI Chatbot:** An integrated helper, powered by OpenAI, to assist students with problems and explanations.
+6.  **Mascot Nova:** An animated mascot used throughout the app to guide and engage the user. The mascot has a transparent background for seamless integration.
+</product_requirements>
+
+<key_technical_concepts>
+- **Full-Stack Architecture:** FastAPI (Python) backend, Expo (React Native) frontend, MongoDB database.
+- **Mobile Development:** Expo SDK, React Native components, and  for file-based navigation.
+- **AI Integration:** OpenAI API for an in-app chatbot.
+- **Text-to-Speech:**  for audio explanations on content cards.
+- **Image Processing:** Python Imaging Library (PIL/Pillow) for optimizing an animated GIF (background removal, resizing, frame reduction).
+- **UI Libraries:**  for graphics and  for styling.
+</key_technical_concepts>
+
+<code_architecture>
+The application follows a standard full-stack monorepo structure with separate  and  directories. The frontend is an Expo project that uses file-based routing.
+
+**Directory Structure:**
+
+
+**Key Files & Changes:**
+
+- ****:
+  - **Importance:** This file contains the entire FastAPI backend, including data models (Pydantic), database interactions (MongoDB), and all API endpoints for user authentication and content delivery.
+  - **Changes:** Initially scaffolded with comprehensive models. Later, the  model and corresponding registration endpoint were simplified to only require email, mobile, and password, deferring other data collection to the onboarding flow.
+
+- ****:
+  - **Importance:** The main dashboard screen users see after logging in.
+  - **Changes:** This file underwent significant UI revisions based on user feedback. It was updated from a basic layout to a structured design with Track Your Progress cards, and the color scheme was changed from teal to mustard yellow for accents.
+
+- ****:
+  - **Importance:** The entry point for the learning journey, displaying all available chapters.
+  - **Changes:** Redesigned to feature a visual journey at the top (a dashed slope with the mascot) and a list of chapters. The background color was changed to cream.
+
+- ****:
+  - **Importance:** A dynamic route screen that lists all topics within a specific chapter.
+  - **Changes:** A critical bug was fixed where  was incorrectly imported from  instead of . The navigation was updated to push to the new  screen instead of directly to a lesson.
+
+- ****:
+  - **Importance:** The core learning screen where users interact with microcontent cards.
+  - **Changes:** Implemented a card-based UI with three modes (Story, Relate, Why) and an  integration for TTS. Logic was added to navigate to  upon completion. A syntax error ( in a template literal) was fixed.
+
+- ****:
+  - **Importance:** A new screen created to act as an intermediary, showing a list of all subtopics within a selected topic.
+  - **Changes:** This file was newly created to support the more granular content structure requested by the user, based on the provided Excel sheet.
+
+- ****:
+  - **Importance:** A reusable component to display the Nova mascot.
+  - **Changes:** The component was modified to use a local, optimized, and transparent GIF asset () instead of a remote URL.
+
+- ****:
+  - **Importance:** Guides new users through a data collection process after signup.
+  - **Changes:** The file was completely rewritten from a simple form to a multi-step, progressive questionnaire to collect user preferences and background information related to AI learning.
+</code_architecture>
+
+<pending_tasks>
+- Implement the complete, confirmed Learn Tab flow using the data structure from the  file.
+- Populate the frontend with the actual microcontent, explanations, and hierarchy from the Excel data.
+- Build out the remaining Tier 1 features: the Community Tab, Parent Dashboard, and Privacy Controls.
+- Implement backend logic for persisting and retrieving user progress, including XP points, streaks, and completed lessons/quizzes.
+</pending_tasks>
+
+<current_work>
+The immediate focus is on correctly implementing the multi-level learning flow for the **Learn Tab** as per the user's detailed specification and the provided Excel file. The user has expressed concern over credit usage, demanding high accuracy in the next implementation phase.
+
+In response, the previous engineer took the following steps:
+1.  **Data Extraction:** Successfully extracted and parsed the content and structure from the user-provided  file.
+2.  **Flow Analysis:** Analyzed the Excel data's hierarchy, which maps Chapters -> Topics -> Subtopics -> Microcontent cards. Each microcontent card has distinct text for Story, Relate (Analogy), and Why (Core Text) modes.
+3.  **Confirmation Proposal:** Formulated a detailed, step-by-step user flow proposal to ensure complete alignment before writing any code. This flow dictates the precise navigation sequence:
+    *   **Screen 1 (Learn Tab):** List of Chapters.
+    *   **Screen 2 (Chapter Detail):** List of Topics for the selected Chapter.
+    *   **Screen 3 (Subtopics List):** List of Subtopics for the selected Topic.
+    *   **Screen 4 (Microcontent Cards):** Interactive learning cards for the selected Subtopic.
+    *   **Screen 5 (Quiz Flow):** Triggered after completing all cards in a single subtopic.
+4.  **Waiting for Confirmation:** The work is currently paused, awaiting the user's final approval of this granular flow. The engineer has explicitly asked for confirmation to avoid rework and unnecessary credit consumption. No new code has been written for this specific, data-driven flow yet.
+</current_work>
+
+<optional_next_step>
+Upon your confirmation of the proposed Learn Tab flow, I will proceed to build the required screens and logic using the data structure from the provided Excel file.
+</optional_next_step>
