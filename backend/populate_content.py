@@ -512,6 +512,12 @@ async def populate_database():
         topic_key = f"{chapter_name}|{topic_number}|{topic_title}"
         if topic_key not in topics_dict:
             topic_id = str(uuid.uuid4())
+            # Convert topic_number to sortable order (e.g., "1.1.2" -> 1.012, "1.1" -> 1.01)
+            try:
+                order_val = sum(float(part) / (100 ** idx) for idx, part in enumerate(topic_number.split('.'))) if topic_number else 0
+            except:
+                order_val = len(topics_dict) + 1
+            
             topics_dict[topic_key] = {
                 "topic_id": topic_id,
                 "chapter_id": chapter_id,
@@ -519,7 +525,7 @@ async def populate_database():
                 "topic_title": topic_title,
                 "title": topic_title,
                 "description": f"Explore {topic_title}",
-                "order": float(topic_number) if topic_number else 0,
+                "order": order_val,
                 "locked": False
             }
         
