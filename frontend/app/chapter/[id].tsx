@@ -132,7 +132,7 @@ export default function ChapterDetailScreen() {
                 </View>
                 
                 {topic.completed ? (
-                  <Ionicons name="checkmark-circle" size={24} color="#4ECDC4" />
+                  <Ionicons name="checkmark-circle" size={28} color="#4ECDC4" />
                 ) : (
                   <Ionicons name="chevron-forward" size={24} color="#A0A0B0" />
                 )}
