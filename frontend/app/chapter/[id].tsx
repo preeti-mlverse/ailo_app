@@ -103,32 +103,42 @@ export default function ChapterDetailScreen() {
 
         {/* Topics List */}
         <View style={styles.topicsContainer}>
-          <Text style={styles.sectionHeader}>Topics</Text>
-          {topics.map((topic: any, index: number) => (
-            <TouchableOpacity
-              key={topic.topic_id}
-              style={[
-                styles.topicCard,
-                index === 0 && styles.firstTopic,
-              ]}
-              onPress={() => router.push(`/topic/${topic.topic_id}`)}
-            >
-              <View style={styles.topicNumberBadge}>
-                <Text style={styles.topicNumber}>{topic.topic_number || index + 1}</Text>
-              </View>
-              
-              <View style={styles.topicInfo}>
-                <Text style={styles.topicTitle}>{topic.title}</Text>
-                <Text style={styles.topicDescription}>{topic.description}</Text>
-              </View>
-              
-              {topic.completed ? (
-                <Ionicons name="checkmark-circle" size={24} color="#4ECDC4" />
-              ) : (
-                <Ionicons name="chevron-forward" size={24} color="#A0A0B0" />
-              )}
-            </TouchableOpacity>
-          ))}
+          <Text style={styles.sectionHeader}>Topics ({topics.length})</Text>
+          {topics.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="book-outline" size={48} color="#A0A0B0" />
+              <Text style={styles.emptyText}>No topics available yet</Text>
+            </View>
+          ) : (
+            topics.map((topic: any, index: number) => (
+              <TouchableOpacity
+                key={topic.topic_id || index}
+                style={[
+                  styles.topicCard,
+                  index === 0 && styles.firstTopic,
+                ]}
+                onPress={() => {
+                  console.log('Navigating to topic:', topic.topic_id);
+                  router.push(`/topic/${topic.topic_id}`);
+                }}
+              >
+                <View style={styles.topicNumberBadge}>
+                  <Text style={styles.topicNumber}>{topic.topic_number || index + 1}</Text>
+                </View>
+                
+                <View style={styles.topicInfo}>
+                  <Text style={styles.topicTitle}>{topic.title}</Text>
+                  <Text style={styles.topicDescription}>{topic.description}</Text>
+                </View>
+                
+                {topic.completed ? (
+                  <Ionicons name="checkmark-circle" size={24} color="#4ECDC4" />
+                ) : (
+                  <Ionicons name="chevron-forward" size={24} color="#A0A0B0" />
+                )}
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         <View style={{ height: 100 }} />
