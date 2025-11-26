@@ -25,7 +25,7 @@ const QUIZ_QUESTIONS = [
   },
   {
     id: 'q3',
-    question: 'What's your learning goal?',
+    question: 'What is your learning goal?',
     options: ['Improve Grades', 'Prepare for Exams', 'Learn New Topics', 'Stay Ahead'],
   },
 ];
