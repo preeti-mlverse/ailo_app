@@ -339,6 +339,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
   },
+  chapterName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  topicName: {
+    fontSize: 12,
+    color: '#A0A0B0',
+    textAlign: 'center',
+    marginTop: 2,
+  },
   headerRight: {
     padding: 8,
   },
