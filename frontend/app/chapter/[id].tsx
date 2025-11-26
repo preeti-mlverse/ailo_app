@@ -305,4 +305,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666666',
   },
+  emptyState: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#A0A0B0',
+    marginTop: 16,
+    textAlign: 'center',
+  },
 });
