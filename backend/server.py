@@ -1327,6 +1327,7 @@ async def update_subtopic_progress(
     total_cards = subtopic.get("microcontent_count", 0)
     progress_pct = (progress_data.current_card / total_cards * 100) if total_cards > 0 else 0
     
+    # Save subtopic progress
     await db.subtopic_progress.update_one(
         {"user_id": user_id, "subtopic_id": subtopic_id},
         {"$set": {
@@ -1335,19 +1336,113 @@ async def update_subtopic_progress(
             "current_card": progress_data.current_card,
             "progress": progress_pct,
             "completed": progress_data.completed,
+            "completed_at": datetime.utcnow() if progress_data.completed else None,
             "updated_at": datetime.utcnow()
         }},
         upsert=True
     )
     
+    xp_earned = 0
+    topic_completed = False
+    
     # Award XP if completed
     if progress_data.completed:
+        xp_earned = 20
         await db.users.update_one(
             {"user_id": user_id},
-            {"$inc": {"xp": 20}}
+            {"$inc": {"xp": xp_earned}}
         )
+        
+        # Check if all subtopics in this topic are completed
+        topic_id = subtopic["topic_id"]
+        all_subtopics = await db.subtopics.find({"topic_id": topic_id}).to_list(100)
+        all_subtopic_ids = [s["subtopic_id"] for s in all_subtopics]
+        
+        completed_subtopics = await db.subtopic_progress.count_documents({
+            "user_id": user_id,
+            "subtopic_id": {"$in": all_subtopic_ids},
+            "completed": True
+        })
+        
+        # If all subtopics completed, mark topic as complete and award bonus XP
+        if completed_subtopics == len(all_subtopics):
+            topic_completed = True
+            bonus_xp = 40
+            xp_earned += bonus_xp
+            
+            await db.topic_progress.update_one(
+                {"user_id": user_id, "topic_id": topic_id},
+                {"$set": {
+                    "chapter_id": subtopic["chapter_id"],
+                    "completed": True,
+                    "completed_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }},
+                upsert=True
+            )
+            
+            await db.users.update_one(
+                {"user_id": user_id},
+                {"$inc": {"xp": bonus_xp}}
+            )
+        
+        # Update streak
+        await update_user_streak(user_id)
     
-    return {"message": "Progress updated", "xp_earned": 20 if progress_data.completed else 0}
+    return {
+        "message": "Progress updated", 
+        "xp_earned": xp_earned,
+        "topic_completed": topic_completed
+    }
+
+
+async def update_user_streak(user_id: str):
+    """Update user's learning streak"""
+    user = await db.users.find_one({"user_id": user_id})
+    if not user:
+        return
+    
+    today = datetime.utcnow().date()
+    last_activity = user.get("last_activity_date")
+    
+    if last_activity:
+        last_activity_date = last_activity.date() if isinstance(last_activity, datetime) else last_activity
+        days_diff = (today - last_activity_date).days
+        
+        if days_diff == 0:
+            # Same day, no change
+            return
+        elif days_diff == 1:
+            # Consecutive day, increment streak
+            await db.users.update_one(
+                {"user_id": user_id},
+                {
+                    "$inc": {"streak": 1},
+                    "$set": {"last_activity_date": datetime.utcnow()}
+                }
+            )
+        else:
+            # Streak broken, reset to 1
+            await db.users.update_one(
+                {"user_id": user_id},
+                {
+                    "$set": {
+                        "streak": 1,
+                        "last_activity_date": datetime.utcnow()
+                    }
+                }
+            )
+    else:
+        # First activity
+        await db.users.update_one(
+            {"user_id": user_id},
+            {
+                "$set": {
+                    "streak": 1,
+                    "last_activity_date": datetime.utcnow()
+                }
+            }
+        )
 
 
 @api_router.get("/subtopics/{subtopic_id}/quiz")
