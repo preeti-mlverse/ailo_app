@@ -1,105 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { NovaMascot } from '../../components/NovaMascot';
+import { NovaMascot } from '../../components/ai/NovaMascot';
 import { NovaChatbot } from '../../components/ai/NovaChatbot';
-
-// Sample topic structure based on your screenshot
-const CHAPTER_CONTENT: any = {
-  unit1: {
-    title: 'Python Programming',
-    subtitle: 'Your foundation for AI development',
-    totalLessons: 31,
-    sections: [
-      {
-        id: 's1',
-        number: '0',
-        title: 'Chapter Overview',
-        subtitle: 'What you\'ll learn & why it matters for AI',
-        lessons: [
-          { id: 'l1', title: 'Summary & Objectives', completed: false },
-          { id: 'l2', title: 'Learning Objectives', completed: false },
-        ],
-      },
-      {
-        id: 's2',
-        number: '1.1',
-        title: 'Python Libraries',
-        subtitle: 'Your \'toolbox\' for AI in Python',
-        lessons: [
-          { id: 'l3', title: 'Definition of Libraries', completed: false },
-          { id: 'l4', title: 'Role of NumPy and Pantas', completed: false },
-        ],
-      },
-      {
-        id: 's3',
-        number: '1.1.1',
-        title: 'NumPy Library',
-        subtitle: 'Smart tables for real-world data',
-        lessons: [
-          { id: 'l5', title: 'Definition and Rank', completed: false },
-          { id: 'l6', title: 'NumPy for Big Data', completed: false },
-          { id: 'l7', title: 'Hands-on Practice', completed: false },
-        ],
-      },
-      {
-        id: 's4',
-        number: '1.1.2',
-        title: 'Pantas Library',
-        subtitle: 'The Swiss Army knife for data',
-        lessons: [
-          { id: 'l8', title: 'What is Pantas?', completed: false },
-          { id: 'l9', title: 'DataFrame Basics', completed: false },
-          { id: 'l10', title: 'Data Cleaning', completed: false },
-        ],
-      },
-      {
-        id: 's5',
-        number: '1.2',
-        title: 'Data Visualization',
-        subtitle: 'Making data speak visually',
-        lessons: [
-          { id: 'l11', title: 'Introduction to Matplotlib', completed: false },
-          { id: 'l12', title: 'Creating Charts', completed: false },
-        ],
-      },
-    ],
-  },
-  // Add other units as needed
-};
+import { learningAPI } from '../../utils/api';
 
 export default function ChapterDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const [expandedSections, setExpandedSections] = useState<string[]>(['s1']);
   const [chatVisible, setChatVisible] = useState(false);
-  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [topics, setTopics] = useState<any[]>([]);
+  const [chapterInfo, setChapterInfo] = useState<any>(null);
 
-  const chapter = CHAPTER_CONTENT[id as string] || CHAPTER_CONTENT.unit1;
-  const completedCount = completedLessons.length;
+  useEffect(() => {
+    fetchTopics();
+  }, [id]);
 
-  const toggleSection = (sectionId: string) => {
-    if (expandedSections.includes(sectionId)) {
-      setExpandedSections(expandedSections.filter(s => s !== sectionId));
-    } else {
-      setExpandedSections([...expandedSections, sectionId]);
+  const fetchTopics = async () => {
+    try {
+      setLoading(true);
+      const response = await learningAPI.getTopics(id as string);
+      setTopics(response.data);
+      
+      // Assume first topic has chapter info or fetch chapters
+      if (response.data.length > 0) {
+        // You can fetch chapter details if needed
+        setChapterInfo({
+          title: 'Unit 1: Python Programming-II',
+          subtitle: 'Your foundation for AI development',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching topics:', error);
+      Alert.alert('Error', 'Failed to load topics');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const toggleLesson = (lessonId: string) => {
-    if (completedLessons.includes(lessonId)) {
-      setCompletedLessons(completedLessons.filter(l => l !== lessonId));
-    } else {
-      setCompletedLessons([...completedLessons, lessonId]);
-    }
-  };
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#E6B800" />
+        <Text style={styles.loadingText}>Loading topics...</Text>
+      </View>
+    );
+  }
+
+  const completedCount = topics.filter(t => t.completed).length;
+  const totalTopics = topics.length;
 
   return (
     <View style={styles.container}>
@@ -109,7 +68,7 @@ export default function ChapterDetailScreen() {
           <Ionicons name="arrow-back" size={24} color="#E6B800" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>{chapter.title}</Text>
+          <Text style={styles.headerTitle}>{chapterInfo?.title || 'Chapter'}</Text>
         </View>
         <TouchableOpacity onPress={() => setChatVisible(true)} style={styles.chatButton}>
           <Ionicons name="chatbubbles" size={24} color="#E6B800" />
@@ -134,87 +93,39 @@ export default function ChapterDetailScreen() {
         {/* Progress Indicator */}
         <View style={styles.progressSection}>
           <View style={styles.progressCircle}>
-            <Text style={styles.progressNumber}>{completedCount}/{chapter.totalLessons}</Text>
+            <Text style={styles.progressNumber}>{completedCount}/{totalTopics}</Text>
           </View>
-          <Text style={styles.progressLabel}>micro-lessons</Text>
+          <Text style={styles.progressLabel}>topics completed</Text>
         </View>
 
         {/* Topics List */}
         <View style={styles.topicsContainer}>
-          {chapter.sections.map((section: any, index: number) => {
-            const isExpanded = expandedSections.includes(section.id);
-            const sectionCompleted = section.lessons.every((l: any) => 
-              completedLessons.includes(l.id)
-            );
-
-            return (
-              <View key={section.id} style={styles.sectionContainer}>
-                {/* Section Header */}
-                <TouchableOpacity
-                  style={[
-                    styles.sectionHeader,
-                    index === 0 && styles.firstSection,
-                  ]}
-                  onPress={() => toggleSection(section.id)}
-                >
-                  <View style={styles.sectionNumberBadge}>
-                    <Text style={styles.sectionNumber}>{section.number}</Text>
-                  </View>
-                  
-                  <View style={styles.sectionInfo}>
-                    <Text style={styles.sectionTitle}>{section.title}</Text>
-                    <Text style={styles.sectionSubtitle}>{section.subtitle}</Text>
-                  </View>
-                  
-                  <Ionicons 
-                    name={isExpanded ? 'chevron-up' : 'chevron-forward'} 
-                    size={24} 
-                    color="#A0A0B0" 
-                  />
-                </TouchableOpacity>
-
-                {/* Section Lessons */}
-                {isExpanded && (
-                  <View style={styles.lessonsContainer}>
-                    {section.lessons.map((lesson: any) => {
-                      const isCompleted = completedLessons.includes(lesson.id);
-                      
-                      return (
-                        <TouchableOpacity
-                          key={lesson.id}
-                          style={styles.lessonRow}
-                          onPress={() => {
-                            toggleLesson(lesson.id);
-                            // Navigate to subtopics list
-                            router.push(`/subtopics/${lesson.id}`);
-                          }}
-                        >
-                          <TouchableOpacity
-                            style={[
-                              styles.checkbox,
-                              isCompleted && styles.checkboxChecked,
-                            ]}
-                            onPress={() => toggleLesson(lesson.id)}
-                          >
-                            {isCompleted && (
-                              <Ionicons name="checkmark" size={16} color="#1E1E2E" />
-                            )}
-                          </TouchableOpacity>
-                          
-                          <Text style={[
-                            styles.lessonTitle,
-                            isCompleted && styles.lessonTitleCompleted,
-                          ]}>
-                            {lesson.title}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                )}
+          <Text style={styles.sectionHeader}>Topics</Text>
+          {topics.map((topic: any, index: number) => (
+            <TouchableOpacity
+              key={topic.topic_id}
+              style={[
+                styles.topicCard,
+                index === 0 && styles.firstTopic,
+              ]}
+              onPress={() => router.push(`/topic/${topic.topic_id}`)}
+            >
+              <View style={styles.topicNumberBadge}>
+                <Text style={styles.topicNumber}>{topic.topic_number || index + 1}</Text>
               </View>
-            );
-          })}
+              
+              <View style={styles.topicInfo}>
+                <Text style={styles.topicTitle}>{topic.title}</Text>
+                <Text style={styles.topicDescription}>{topic.description}</Text>
+              </View>
+              
+              {topic.completed ? (
+                <Ionicons name="checkmark-circle" size={24} color="#4ECDC4" />
+              ) : (
+                <Ionicons name="chevron-forward" size={24} color="#A0A0B0" />
+              )}
+            </TouchableOpacity>
+          ))}
         </View>
 
         <View style={{ height: 100 }} />
@@ -223,7 +134,7 @@ export default function ChapterDetailScreen() {
       <NovaChatbot
         visible={chatVisible}
         onClose={() => setChatVisible(false)}
-        context={`Chapter: ${chapter.title}`}
+        context={`Chapter: ${chapterInfo?.title || 'Python Programming'}`}
       />
     </View>
   );
@@ -233,6 +144,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F0',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666666',
   },
   header: {
     flexDirection: 'row',
@@ -321,27 +241,31 @@ const styles = StyleSheet.create({
   topicsContainer: {
     padding: 16,
   },
-  sectionContainer: {
-    marginBottom: 12,
-  },
   sectionHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1E1E2E',
+    marginBottom: 16,
+  },
+  topicCard: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
-  firstSection: {
+  firstTopic: {
     backgroundColor: '#FFF9E6',
     borderWidth: 2,
     borderColor: '#E6B800',
   },
-  sectionNumberBadge: {
+  topicNumberBadge: {
     width: 48,
     height: 48,
     borderRadius: 12,
@@ -350,58 +274,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  sectionNumber: {
-    fontSize: 18,
+  topicNumber: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#1E1E2E',
   },
-  sectionInfo: {
+  topicInfo: {
     flex: 1,
   },
-  sectionTitle: {
+  topicTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#1E1E2E',
     marginBottom: 4,
   },
-  sectionSubtitle: {
+  topicDescription: {
     fontSize: 13,
     color: '#666666',
-  },
-  lessonsContainer: {
-    marginTop: 8,
-    marginLeft: 60,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 12,
-  },
-  lessonRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#E6B800',
-    marginRight: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#E6B800',
-  },
-  lessonTitle: {
-    flex: 1,
-    fontSize: 14,
-    color: '#1E1E2E',
-  },
-  lessonTitleCompleted: {
-    color: '#999999',
-    textDecorationLine: 'line-through',
   },
 });
