@@ -41,7 +41,7 @@ export default function LandingScreen() {
         {/* App Logo and Tagline */}
         <Text style={styles.logo}>AILO</Text>
         <Text style={styles.tagline}>Learn Smarter, Not Harder</Text>
-        <Text style={styles.subtitle}>Your AI-powered learning companion</Text>
+        <Text style={styles.subtitle}>AI Companion for Learning AI</Text>
 
         {/* CTA Buttons */}
         <View style={styles.buttonContainer}>
