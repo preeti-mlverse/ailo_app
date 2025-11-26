@@ -1392,9 +1392,9 @@ async def submit_quiz(
     
     # Validate answers
     correct_count = 0
-    total_questions = len(answers)
+    total_questions = len(submission.answers)
     
-    for answer in answers:
+    for answer in submission.answers:
         question = await db.quiz_questions.find_one({"question_id": answer["question_id"]})
         if question and question["correct_answer"] == answer["user_answer"]:
             correct_count += 1
@@ -1411,8 +1411,8 @@ async def submit_quiz(
     # Store quiz result
     await db.quiz_results.insert_one({
         "user_id": user_id,
-        "quiz_id": quiz_id,
-        "subtopic_id": subtopic_id,
+        "quiz_id": submission.quiz_id,
+        "subtopic_id": submission.subtopic_id,
         "score": score,
         "correct_count": correct_count,
         "total_questions": total_questions,
