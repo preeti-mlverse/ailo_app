@@ -98,10 +98,15 @@ export default function TopicSubtopicsScreen() {
                   {subtopic.microcontent_count || 0} cards
                 </Text>
                 
-                {subtopic.completed && (
+                {subtopic.progress >= 100 && (
                   <View style={styles.completedBadge}>
-                    <Ionicons name="checkmark-circle" size={16} color="#4ECDC4" />
-                    <Text style={styles.completedText}>Completed</Text>
+                    <Ionicons name="checkmark-circle" size={18} color="#4ECDC4" />
+                    <Text style={styles.completedText}>✓ Completed</Text>
+                  </View>
+                )}
+                {subtopic.progress > 0 && subtopic.progress < 100 && (
+                  <View style={styles.progressBadge}>
+                    <Text style={styles.progressText}>{Math.round(subtopic.progress)}% done</Text>
                   </View>
                 )}
               </View>
