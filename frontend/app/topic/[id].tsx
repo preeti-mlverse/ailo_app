@@ -1,158 +1,308 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { learningAPI } from '../../utils/api';
 import { Ionicons } from '@expo/vector-icons';
-import Markdown from 'react-native-markdown-display';
 import { NovaMascot } from '../../components/NovaMascot';
-import { NovaChatbot } from '../../components/ai/NovaChatbot';
+import * as Speech from 'expo-speech';
+
+const { width } = Dimensions.get('window');
+
+// Sample lesson content with 3 explanation modes
+const LESSON_CONTENT: any = {
+  l1: {
+    title: 'Summary & Objectives',
+    subtitle: 'What you will learn in this chapter',
+    cards: [
+      {
+        id: 'c1',
+        title: 'Welcome to Python Programming',
+        story: 'Imagine you have a magic wand that can make computers do anything you want. That magic wand is called Python! It\'s a special language that helps you talk to computers and tell them exactly what to do.',
+        relate: 'Just like you use English to talk to your friends, programmers use Python to talk to computers. When you want your friend to help you, you ask nicely. When you want a computer to help you, you write Python code!',
+        why: 'Python is important because it\'s the language that powers AI, websites, games, and even robots! Learning Python is like learning a superpower that lets you create amazing things with technology.',
+        visual: '🐍',
+      },
+      {
+        id: 'c2',
+        title: 'What are Libraries?',
+        story: 'Think of a library as a magical toolkit. Instead of having to build every tool from scratch, you can just pick the tools you need from the library. Python libraries are collections of ready-made code that solve common problems.',
+        relate: 'It\'s like having a LEGO set. Instead of making every LEGO brick yourself, you get a box full of different pieces you can use to build something amazing!',
+        why: 'Libraries save you time and effort. Why spend days building something when someone has already built it and shared it with the world? That\'s the power of Python libraries!',
+        visual: '📚',
+      },
+    ],
+  },
+  l2: {
+    title: 'Learning Objectives',
+    subtitle: 'Goals for this chapter',
+    cards: [
+      {
+        id: 'c3',
+        title: 'Understanding Variables',
+        story: 'Variables are like labeled boxes where you can store information. Imagine you have a box labeled "age" and you put the number 15 inside. Now whenever you need to know the age, you just look in that box!',
+        relate: 'Think of variables like your school locker. It has your name on it (the variable name), and inside you keep your books and supplies (the data). You can change what\'s inside anytime you want!',
+        why: 'Variables are the foundation of programming. Without variables, computers couldn\'t remember anything! They help us store, organize, and use data in our programs.',
+        visual: '📦',
+      },
+    ],
+  },
+};
 
 export default function TopicDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const [topic, setTopic] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [chatVisible, setChatVisible] = useState(false);
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const scrollViewRef = useRef<ScrollView>(null);
-  const [contentHeight, setContentHeight] = useState(0);
-  const [scrollViewHeight, setScrollViewHeight] = useState(0);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [activeMode, setActiveMode] = useState<'story' | 'relate' | 'why'>('story');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  const lesson = LESSON_CONTENT[id as string] || LESSON_CONTENT.l1;
+  const currentCard = lesson.cards[currentCardIndex];
 
   useEffect(() => {
-    if (id) {
-      loadTopic();
-    }
-  }, [id]);
+    // Stop speech when component unmounts or card changes
+    return () => {
+      Speech.stop();
+    };
+  }, [currentCardIndex, activeMode]);
 
-  const loadTopic = async () => {
-    try {
-      // For now, we'll create a simple topic viewer
-      // In full implementation, this would fetch from API
-      setTopic({
-        topic_id: id,
-        title: 'Sample Topic',
-        content: `# Welcome to Learning!\n\nThis is where the lesson content will be displayed.\n\n## Key Concepts\n- Point 1\n- Point 2\n- Point 3`,
+  const handleSpeak = async () => {
+    if (isSpeaking) {
+      Speech.stop();
+      setIsSpeaking(false);
+    } else {
+      setIsSpeaking(true);
+      const textToSpeak = currentCard[activeMode];
+      
+      Speech.speak(textToSpeak, {
+        language: 'en-US',
+        pitch: 1.0,
+        rate: 0.9,
+        onDone: () => setIsSpeaking(false),
+        onStopped: () => setIsSpeaking(false),
+        onError: () => setIsSpeaking(false),
       });
-    } catch (error) {
-      console.error('Error loading topic:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleScroll = (event: any) => {
-    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-    const scrollPosition = contentOffset.y;
-    const scrollHeight = contentSize.height;
-    const viewHeight = layoutMeasurement.height;
-    
-    setScrollPosition(scrollPosition);
-    setContentHeight(scrollHeight);
-    setScrollViewHeight(viewHeight);
-
-    // Calculate progress
-    const progress = (scrollPosition / (scrollHeight - viewHeight)) * 100;
-    
-    // Auto-save progress every 10 seconds would be implemented here
-    if (progress > 0) {
-      updateProgress(Math.min(progress, 100));
+  const handleNext = () => {
+    Speech.stop();
+    setIsSpeaking(false);
+    if (currentCardIndex < lesson.cards.length - 1) {
+      setCurrentCardIndex(currentCardIndex + 1);
+      setActiveMode('story'); // Reset to story mode
     }
   };
 
-  const updateProgress = async (progress: number) => {
-    try {
-      await learningAPI.updateProgress(id as string, progress, scrollPosition);
-    } catch (error) {
-      // Silently fail - auto-save
+  const handlePrevious = () => {
+    Speech.stop();
+    setIsSpeaking(false);
+    if (currentCardIndex > 0) {
+      setCurrentCardIndex(currentCardIndex - 1);
+      setActiveMode('story');
     }
   };
 
-  const handleMarkComplete = async () => {
-    try {
-      await learningAPI.updateProgress(id as string, 100, scrollPosition);
-      router.back();
-    } catch (error) {
-      console.error('Error marking complete:', error);
-    }
+  const handleModeChange = (mode: 'story' | 'relate' | 'why') => {
+    Speech.stop();
+    setIsSpeaking(false);
+    setActiveMode(mode);
   };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FFD700" />
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#FFD700" />
+          <Ionicons name="arrow-back" size={24} color="#E6B800" />
         </TouchableOpacity>
-        <Text style={styles.title} numberOfLines={1}>{topic?.title}</Text>
-        <TouchableOpacity onPress={() => setChatVisible(true)} style={styles.chatButton}>
-          <Ionicons name="chatbubbles" size={24} color="#FFD700" />
-        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle} numberOfLines={1}>{lesson.title}</Text>
+        </View>
+        <View style={styles.headerRight}>
+          <Text style={styles.cardCounter}>
+            {currentCardIndex + 1}/{lesson.cards.length}
+          </Text>
+        </View>
       </View>
 
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.content}
-        onScroll={handleScroll}
-        scrollEventThrottle={1000}
-      >
-        {/* Nova Welcome Message */}
-        <View style={styles.novaMessage}>
-          <NovaMascot animation="happy" size={60} />
-          <View style={styles.speechBubble}>
-            <Text style={styles.speechText}>
-              Let's learn together! Take your time and ask me if you need help.
-            </Text>
+      <ScrollView style={styles.content}>
+        {/* Hero Section with Mascot */}
+        <View style={styles.heroSection}>
+          <NovaMascot animation="happy" size={100} />
+          <Text style={styles.lessonSubtitle}>{lesson.subtitle}</Text>
+        </View>
+
+        {/* Content Card */}
+        <View style={styles.cardContainer}>
+          {/* Visual Icon */}
+          <View style={styles.visualContainer}>
+            <Text style={styles.visualEmoji}>{currentCard.visual}</Text>
+          </View>
+
+          {/* Card Title */}
+          <Text style={styles.cardTitle}>{currentCard.title}</Text>
+
+          {/* Mode Tabs */}
+          <View style={styles.modeTabsContainer}>
+            <TouchableOpacity
+              style={[
+                styles.modeTab,
+                activeMode === 'story' && styles.modeTabActive,
+              ]}
+              onPress={() => handleModeChange('story')}
+            >
+              <Ionicons 
+                name="book" 
+                size={20} 
+                color={activeMode === 'story' ? '#1E1E2E' : '#A0A0B0'} 
+              />
+              <Text
+                style={[
+                  styles.modeTabText,
+                  activeMode === 'story' && styles.modeTabTextActive,
+                ]}
+              >
+                Story
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.modeTab,
+                activeMode === 'relate' && styles.modeTabActive,
+              ]}
+              onPress={() => handleModeChange('relate')}
+            >
+              <Ionicons 
+                name="link" 
+                size={20} 
+                color={activeMode === 'relate' ? '#1E1E2E' : '#A0A0B0'} 
+              />
+              <Text
+                style={[
+                  styles.modeTabText,
+                  activeMode === 'relate' && styles.modeTabTextActive,
+                ]}
+              >
+                Relate
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.modeTab,
+                activeMode === 'why' && styles.modeTabActive,
+              ]}
+              onPress={() => handleModeChange('why')}
+            >
+              <Ionicons 
+                name="help-circle" 
+                size={20} 
+                color={activeMode === 'why' ? '#1E1E2E' : '#A0A0B0'} 
+              />
+              <Text
+                style={[
+                  styles.modeTabText,
+                  activeMode === 'why' && styles.modeTabTextActive,
+                ]}
+              >
+                Why
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Content Text */}
+          <View style={styles.contentCard}>
+            <ScrollView style={styles.contentScroll}>
+              <Text style={styles.contentText}>{currentCard[activeMode]}</Text>
+            </ScrollView>
+
+            {/* Audio Button */}
+            <TouchableOpacity style={styles.audioButton} onPress={handleSpeak}>
+              <Ionicons 
+                name={isSpeaking ? 'stop-circle' : 'volume-high'} 
+                size={24} 
+                color="#E6B800" 
+              />
+              <Text style={styles.audioButtonText}>
+                {isSpeaking ? 'Stop' : 'Listen'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Navigation Buttons */}
+          <View style={styles.navigationContainer}>
+            <TouchableOpacity
+              style={[
+                styles.navButton,
+                currentCardIndex === 0 && styles.navButtonDisabled,
+              ]}
+              onPress={handlePrevious}
+              disabled={currentCardIndex === 0}
+            >
+              <Ionicons 
+                name="arrow-back" 
+                size={20} 
+                color={currentCardIndex === 0 ? '#666666' : '#1E1E2E'} 
+              />
+              <Text
+                style={[
+                  styles.navButtonText,
+                  currentCardIndex === 0 && styles.navButtonTextDisabled,
+                ]}
+              >
+                Previous
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.navButton,
+                styles.navButtonNext,
+                currentCardIndex === lesson.cards.length - 1 && styles.navButtonDisabled,
+              ]}
+              onPress={handleNext}
+              disabled={currentCardIndex === lesson.cards.length - 1}
+            >
+              <Text
+                style={[
+                  styles.navButtonText,
+                  styles.navButtonTextNext,
+                  currentCardIndex === lesson.cards.length - 1 && styles.navButtonTextDisabled,
+                ]}
+              >
+                Next
+              </Text>
+              <Ionicons 
+                name="arrow-forward" 
+                size={20} 
+                color={currentCardIndex === lesson.cards.length - 1 ? '#666666' : '#1E1E2E'} 
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Progress Dots */}
+          <View style={styles.progressDots}>
+            {lesson.cards.map((_: any, index: number) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  currentCardIndex === index && styles.dotActive,
+                ]}
+              />
+            ))}
           </View>
         </View>
 
-        {/* Lesson Content */}
-        <View style={styles.lessonContent}>
-          <Markdown
-            style={markdownStyles}
-          >
-            {topic?.content || '# No content available'}
-          </Markdown>
-        </View>
-
-        {/* Nova Tips */}
-        <View style={styles.tipCard}>
-          <Ionicons name="bulb" size={24} color="#FFD700" />
-          <View style={styles.tipContent}>
-            <Text style={styles.tipTitle}>Pro Tip from Nova</Text>
-            <Text style={styles.tipText}>
-              Try to understand the concept before moving on. You can always ask me questions!
-            </Text>
-          </View>
-        </View>
-
-        {/* Complete Button */}
-        <TouchableOpacity style={styles.completeButton} onPress={handleMarkComplete}>
-          <Ionicons name="checkmark-circle" size={24} color="#1E1E2E" />
-          <Text style={styles.completeButtonText}>Mark as Complete</Text>
-        </TouchableOpacity>
-
-        <View style={{ height: 32 }} />
+        <View style={{ height: 50 }} />
       </ScrollView>
-
-      <NovaChatbot
-        visible={chatVisible}
-        onClose={() => setChatVisible(false)}
-        context={`Lesson: ${topic?.title}`}
-      />
     </View>
   );
 }
@@ -162,12 +312,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1E1E2E',
   },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: '#1E1E2E',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -175,141 +319,177 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 60,
     backgroundColor: '#2D2D3D',
-    borderBottomWidth: 1,
-    borderBottomColor: '#3D3D4D',
   },
   backButton: {
     padding: 8,
   },
-  title: {
-    fontSize: 18,
+  headerContent: {
+    flex: 1,
+    marginHorizontal: 12,
+  },
+  headerTitle: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    flex: 1,
     textAlign: 'center',
-    marginHorizontal: 8,
   },
-  chatButton: {
+  headerRight: {
     padding: 8,
+  },
+  cardCounter: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#E6B800',
   },
   content: {
     flex: 1,
   },
-  novaMessage: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 24,
-    gap: 16,
-  },
-  speechBubble: {
-    flex: 1,
+  heroSection: {
+    alignItems: 'center',
+    paddingVertical: 24,
     backgroundColor: '#2D2D3D',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: '#FFD700',
   },
-  speechText: {
+  lessonSubtitle: {
     fontSize: 14,
-    color: '#FFFFFF',
-    lineHeight: 20,
+    color: '#A0A0B0',
+    marginTop: 12,
+    textAlign: 'center',
   },
-  lessonContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-  },
-  tipCard: {
-    flexDirection: 'row',
+  cardContainer: {
+    margin: 16,
     backgroundColor: '#2D2D3D',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 20,
-    marginHorizontal: 24,
-    marginBottom: 24,
-    gap: 16,
   },
-  tipContent: {
-    flex: 1,
-  },
-  tipTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFD700',
-    marginBottom: 8,
-  },
-  tipText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    lineHeight: 20,
-  },
-  completeButton: {
-    flexDirection: 'row',
-    backgroundColor: '#FFD700',
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 24,
+  visualContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#E6B800',
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  visualEmoji: {
+    fontSize: 48,
+  },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modeTabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#1E1E2E',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 16,
+  },
+  modeTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 6,
+  },
+  modeTabActive: {
+    backgroundColor: '#E6B800',
+  },
+  modeTabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#A0A0B0',
+  },
+  modeTabTextActive: {
+    color: '#1E1E2E',
+  },
+  contentCard: {
+    backgroundColor: '#1E1E2E',
+    borderRadius: 12,
+    padding: 16,
+    minHeight: 200,
+    marginBottom: 16,
+  },
+  contentScroll: {
+    maxHeight: 250,
+  },
+  contentText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    lineHeight: 24,
+  },
+  audioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#2D2D3D',
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: '#E6B800',
+    alignSelf: 'center',
     gap: 8,
   },
-  completeButtonText: {
-    fontSize: 18,
+  audioButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#E6B800',
+  },
+  navigationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 16,
+  },
+  navButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    backgroundColor: '#E6B800',
+    borderRadius: 12,
+    gap: 8,
+  },
+  navButtonNext: {
+    backgroundColor: '#E6B800',
+  },
+  navButtonDisabled: {
+    backgroundColor: '#3D3D4D',
+    opacity: 0.5,
+  },
+  navButtonText: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#1E1E2E',
   },
-});
-
-const markdownStyles = {
-  body: {
-    color: '#FFFFFF',
+  navButtonTextNext: {
+    color: '#1E1E2E',
   },
-  heading1: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFD700',
-    marginTop: 16,
-    marginBottom: 12,
+  navButtonTextDisabled: {
+    color: '#666666',
   },
-  heading2: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginTop: 16,
-    marginBottom: 12,
+  progressDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
-  heading3: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  paragraph: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    lineHeight: 24,
-    marginBottom: 12,
-  },
-  bullet_list: {
-    marginBottom: 12,
-  },
-  bullet_list_item: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    lineHeight: 24,
-    marginLeft: 16,
-  },
-  code_inline: {
-    backgroundColor: '#2D2D3D',
-    color: '#FFD700',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+  dot: {
+    width: 8,
+    height: 8,
     borderRadius: 4,
-    fontFamily: 'monospace',
+    backgroundColor: '#3D3D4D',
   },
-  code_block: {
-    backgroundColor: '#2D2D3D',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
+  dotActive: {
+    backgroundColor: '#E6B800',
+    width: 24,
   },
-};
+});
