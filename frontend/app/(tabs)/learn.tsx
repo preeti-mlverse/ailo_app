@@ -96,50 +96,59 @@ export default function LearnScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#E6B800" />
         }
       >
-        <Text style={styles.sectionTitle}>All Units</Text>
+        <Text style={styles.sectionTitle}>All Units ({chapters.length})</Text>
         
-        {CHAPTERS.map((chapter, index) => (
-          <TouchableOpacity
-            key={chapter.id}
-            style={styles.chapterCard}
-            onPress={() => router.push(`/chapter/${chapter.id}`)}
-          >
-            <View style={styles.chapterNumber}>
-              <Text style={styles.chapterNumberText}>{index + 1}</Text>
-            </View>
-            
-            <View style={styles.chapterContent}>
-              <View style={styles.chapterHeader}>
-                <View style={styles.chapterInfo}>
-                  <Text style={styles.chapterTitle}>{chapter.title}</Text>
-                  <Text style={styles.chapterSubtitle}>{chapter.subtitle}</Text>
-                </View>
-                <View style={styles.chapterIconContainer}>
-                  <Ionicons name={chapter.icon as any} size={28} color="#E6B800" />
-                </View>
+        {chapters.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No chapters available</Text>
+          </View>
+        ) : (
+          chapters.map((chapter: any, index: number) => (
+            <TouchableOpacity
+              key={chapter.chapter_id}
+              style={styles.chapterCard}
+              onPress={() => {
+                console.log('Navigating to chapter:', chapter.chapter_id);
+                router.push(`/chapter/${chapter.chapter_id}`);
+              }}
+            >
+              <View style={styles.chapterNumber}>
+                <Text style={styles.chapterNumberText}>{index + 1}</Text>
               </View>
               
-              <View style={styles.chapterMeta}>
-                <View style={styles.metaItem}>
-                  <Ionicons name="book-outline" size={16} color="#A0A0B0" />
-                  <Text style={styles.metaText}>{chapter.topics} Topics</Text>
+              <View style={styles.chapterContent}>
+                <View style={styles.chapterHeader}>
+                  <View style={styles.chapterInfo}>
+                    <Text style={styles.chapterTitle}>{chapter.title || chapter.chapter_name}</Text>
+                    <Text style={styles.chapterSubtitle}>{chapter.description || 'Learn Python Programming'}</Text>
+                  </View>
+                  <View style={styles.chapterIconContainer}>
+                    <Ionicons name="logo-python" size={28} color="#E6B800" />
+                  </View>
                 </View>
-                <View style={styles.metaItem}>
-                  <Ionicons name="time-outline" size={16} color="#A0A0B0" />
-                  <Text style={styles.metaText}>{chapter.duration} min</Text>
+                
+                <View style={styles.chapterMeta}>
+                  <View style={styles.metaItem}>
+                    <Ionicons name="book-outline" size={16} color="#A0A0B0" />
+                    <Text style={styles.metaText}>15 Topics</Text>
+                  </View>
+                  <View style={styles.metaItem}>
+                    <Ionicons name="time-outline" size={16} color="#A0A0B0" />
+                    <Text style={styles.metaText}>75 min</Text>
+                  </View>
                 </View>
+                
+                <TouchableOpacity 
+                  style={styles.startButton}
+                  onPress={() => router.push(`/chapter/${chapter.chapter_id}`)}
+                >
+                  <Text style={styles.startButtonText}>Start Learning</Text>
+                  <Ionicons name="arrow-forward" size={16} color="#1E1E2E" />
+                </TouchableOpacity>
               </View>
-              
-              <TouchableOpacity 
-                style={styles.startButton}
-                onPress={() => router.push(`/chapter/${chapter.id}`)}
-              >
-                <Text style={styles.startButtonText}>Start Learning</Text>
-                <Ionicons name="arrow-forward" size={16} color="#1E1E2E" />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          ))
+        )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
