@@ -28,14 +28,8 @@ export default function SignupScreen() {
   });
 
   const handleSignup = async () => {
-    if (!formData.email || !formData.password || !formData.full_name) {
+    if (!formData.email || !formData.mobile || !formData.password) {
       Alert.alert('Error', 'Please fill in all required fields');
-      return;
-    }
-
-    const age = parseInt(formData.age);
-    if (age < 18 && (!formData.parent_email || !formData.parent_phone)) {
-      Alert.alert('Error', 'Parental consent required for users under 18');
       return;
     }
 
@@ -46,11 +40,7 @@ export default function SignupScreen() {
 
     setLoading(true);
     try {
-      await signup({
-        ...formData,
-        age: parseInt(formData.age) || null,
-        grade: parseInt(formData.grade) || null,
-      });
+      await signup(formData);
       router.replace('/(auth)/onboarding');
     } catch (error: any) {
       Alert.alert('Signup Error', error.message);
