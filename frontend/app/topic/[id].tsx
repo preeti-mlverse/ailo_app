@@ -127,7 +127,8 @@ export default function TopicDetailScreen() {
           <Ionicons name="arrow-back" size={24} color="#E6B800" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle} numberOfLines={1}>{lesson.title}</Text>
+          <Text style={styles.chapterName}>{chapterName}</Text>
+          <Text style={styles.topicName}>Topic: {topicName}</Text>
         </View>
         <View style={styles.headerRight}>
           <Text style={styles.cardCounter}>
