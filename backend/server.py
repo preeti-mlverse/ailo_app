@@ -1332,22 +1332,22 @@ async def update_subtopic_progress(
         {"$set": {
             "topic_id": subtopic["topic_id"],
             "chapter_id": subtopic["chapter_id"],
-            "current_card": current_card,
+            "current_card": progress_data.current_card,
             "progress": progress_pct,
-            "completed": completed,
+            "completed": progress_data.completed,
             "updated_at": datetime.utcnow()
         }},
         upsert=True
     )
     
     # Award XP if completed
-    if completed:
+    if progress_data.completed:
         await db.users.update_one(
             {"user_id": user_id},
-            {"$inc": {"xp": 15}}
+            {"$inc": {"xp": 20}}
         )
     
-    return {"message": "Progress updated", "xp_earned": 15 if completed else 0}
+    return {"message": "Progress updated", "xp_earned": 20 if progress_data.completed else 0}
 
 
 @api_router.get("/subtopics/{subtopic_id}/quiz")
