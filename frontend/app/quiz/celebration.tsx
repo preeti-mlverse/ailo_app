@@ -127,10 +127,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1E1E2E',
   },
-  content: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 80,
+    paddingTop: 60,
     paddingBottom: 40,
     justifyContent: 'space-between',
   },
