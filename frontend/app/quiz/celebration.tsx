@@ -1,66 +1,89 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+  Animated,
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { NovaMascot } from '../../components/NovaMascot';
 import { Ionicons } from '@expo/vector-icons';
+import { NovaMascot } from '../../components/ai/NovaMascot';
+
+const { width } = Dimensions.get('window');
 
 export default function CelebrationScreen() {
   const router = useRouter();
-  const { topicId, topicTitle } = useLocalSearchParams();
+  const { subtopicId, subtopicTitle } = useLocalSearchParams();
+  const scaleAnim = new Animated.Value(0);
+
+  useEffect(() => {
+    // Celebration animation
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 3,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handleStartQuiz = () => {
+    router.push(`/quiz?subtopicId=${subtopicId}&subtopicTitle=${encodeURIComponent(subtopicTitle as string || 'Quiz')}`);
+  };
+
+  const handleSkip = () => {
+    router.back();
+    router.back(); // Go back to subtopics list
+  };
 
   return (
     <View style={styles.container}>
-      {/* Celebration Content */}
       <View style={styles.content}>
-        {/* Mascot */}
-        <View style={styles.mascotContainer}>
-          <NovaMascot animation="cheer" size={150} />
-        </View>
-
-        {/* Celebration Message */}
-        <Text style={styles.title}>Great job! 🎉</Text>
-        <Text style={styles.subtitle}>You completed the topic!</Text>
-
-        {/* Topic Name */}
-        <View style={styles.topicCard}>
-          <Ionicons name="checkmark-circle" size={32} color="#4ECDC4" />
-          <Text style={styles.topicName}>{topicTitle || 'Summary & Objectives'}</Text>
-        </View>
-
-        {/* Quiz Introduction */}
-        <View style={styles.quizIntro}>
-          <Text style={styles.quizIntroTitle}>Ready for a Quick Quiz?</Text>
-          <Text style={styles.quizIntroSubtitle}>
-            Test your understanding with 5 questions
-          </Text>
+        {/* Animated celebration */}
+        <Animated.View
+          style={[
+            styles.celebrationContainer,
+            { transform: [{ scale: scaleAnim }] },
+          ]}
+        >
+          <View style={styles.iconCircle}>
+            <Ionicons name="trophy" size={80} color="#E6B800" />
+          </View>
           
-          <View style={styles.quizDetails}>
-            <View style={styles.detailRow}>
-              <Ionicons name="help-circle-outline" size={20} color="#E6B800" />
-              <Text style={styles.detailText}>5 Questions</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Ionicons name="time-outline" size={20} color="#E6B800" />
-              <Text style={styles.detailText}>~3 minutes</Text>
+          <NovaMascot animation="happy" size={120} />
+          
+          <Text style={styles.title}>🎉 Awesome Work! 🎉</Text>
+          <Text style={styles.subtitle}>
+            You've completed all the cards for
+          </Text>
+          <Text style={styles.topicName}>{subtopicTitle}</Text>
+          
+          <View style={styles.statsContainer}>
+            <View style={styles.statBox}>
+              <Ionicons name="checkmark-circle" size={32} color="#4ECDC4" />
+              <Text style={styles.statLabel}>Completed!</Text>
             </View>
           </View>
+        </Animated.View>
+
+        {/* Action buttons */}
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={handleStartQuiz}
+          >
+            <Text style={styles.primaryButtonText}>Take the Quiz</Text>
+            <Ionicons name="arrow-forward" size={24} color="#1E1E2E" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={handleSkip}
+          >
+            <Text style={styles.secondaryButtonText}>Skip for Now</Text>
+          </TouchableOpacity>
         </View>
-
-        {/* Action Buttons */}
-        <TouchableOpacity
-          style={styles.startQuizButton}
-          onPress={() => router.push(`/quiz/take?topicId=${topicId}`)}
-        >
-          <Text style={styles.startQuizButtonText}>Start Quiz</Text>
-          <Ionicons name="arrow-forward" size={20} color="#1E1E2E" />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.skipButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.skipButtonText}>Skip for now</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -73,99 +96,92 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 24,
+    paddingHorizontal: 24,
     paddingTop: 80,
+    paddingBottom: 40,
+    justifyContent: 'space-between',
+  },
+  celebrationContainer: {
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#2D2D3D',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  mascotContainer: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 8,
     textAlign: 'center',
+    marginTop: 24,
+    marginBottom: 12,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#A0A0B0',
-    marginBottom: 32,
     textAlign: 'center',
+    marginBottom: 8,
   },
-  topicCard: {
+  topicName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#E6B800',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  statsContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    gap: 16,
+  },
+  statBox: {
     backgroundColor: '#2D2D3D',
     borderRadius: 16,
     padding: 20,
-    marginBottom: 32,
-    width: '100%',
-    gap: 16,
-  },
-  topicName: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  quizIntro: {
-    backgroundColor: '#2D2D3D',
-    borderRadius: 16,
-    padding: 24,
-    width: '100%',
-    marginBottom: 24,
-  },
-  quizIntroTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  quizIntroSubtitle: {
-    fontSize: 14,
-    color: '#A0A0B0',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  quizDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  detailRow: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    minWidth: 120,
   },
-  detailText: {
+  statLabel: {
     fontSize: 14,
     color: '#FFFFFF',
+    marginTop: 8,
     fontWeight: '600',
   },
-  startQuizButton: {
+  buttonsContainer: {
+    gap: 12,
+  },
+  primaryButton: {
     flexDirection: 'row',
     backgroundColor: '#E6B800',
     borderRadius: 12,
     paddingVertical: 16,
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
-    gap: 12,
-    marginBottom: 16,
+    gap: 8,
   },
-  startQuizButtonText: {
+  primaryButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1E1E2E',
   },
-  skipButton: {
-    paddingVertical: 12,
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#A0A0B0',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  skipButtonText: {
+  secondaryButtonText: {
     fontSize: 16,
+    fontWeight: '600',
     color: '#A0A0B0',
   },
 });
