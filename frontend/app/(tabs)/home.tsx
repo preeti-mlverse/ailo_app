@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
@@ -81,15 +80,17 @@ export default function HomeScreen() {
         
         <View style={styles.learningCard}>
           <View style={styles.learningHeader}>
-            <View>
+            <View style={styles.learningInfo}>
               <Text style={styles.unitTitle}>Unit 1: Python Programming</Text>
               <View style={styles.learningMeta}>
-                <Ionicons name="list" size={16} color="#A0A0B0" />
-                <Text style={styles.metaText}>11 Topics • 75 minutes</Text>
+                <Ionicons name="book" size={16} color="#666666" />
+                <Text style={styles.metaText}>11 Topics</Text>
+                <Ionicons name="time" size={16} color="#666666" style={{ marginLeft: 12 }} />
+                <Text style={styles.metaText}>75 minutes</Text>
               </View>
             </View>
             <View style={styles.learningIcon}>
-              <Ionicons name="code-slash" size={32} color="#FFD700" />
+              <Ionicons name="code-slash" size={32} color="#E6B800" />
             </View>
           </View>
           
@@ -107,30 +108,27 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Track Your Progress</Text>
         
         <View style={styles.progressGrid}>
-          <TouchableOpacity style={[styles.progressCard, styles.streakCard]}>
-            <View style={styles.progressIcon}>
-              <Ionicons name="flame" size={40} color="#FF6B6B" />
+          <TouchableOpacity style={styles.progressCard}>
+            <View style={styles.progressIconContainer}>
+              <Ionicons name="flame-outline" size={36} color="#1E1E2E" />
             </View>
-            <Text style={styles.progressTitle}>Start your</Text>
-            <Text style={styles.progressTitle}>streak today!</Text>
+            <Text style={styles.progressTitle}>Start your streak today!</Text>
             <Text style={styles.progressValue}>{dashboard?.user?.streak || 0} days</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.progressCard, styles.goalCard]}>
-            <View style={styles.progressIcon}>
-              <Ionicons name="target" size={40} color="#E74C3C" />
+          <TouchableOpacity style={styles.progressCard}>
+            <View style={styles.progressIconContainer}>
+              <Ionicons name="trophy-outline" size={36} color="#1E1E2E" />
             </View>
-            <Text style={styles.progressTitle}>Set Your Daily</Text>
-            <Text style={styles.progressTitle}>Goal!</Text>
+            <Text style={styles.progressTitle}>Set Your Daily Goal!</Text>
             <Text style={styles.progressValue}>{dashboard?.daily_goal?.target_minutes || 30} min</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.progressCard, styles.xpCard]}>
-            <View style={styles.progressIcon}>
-              <Ionicons name="star" size={40} color="#FFD700" />
+          <TouchableOpacity style={styles.progressCard}>
+            <View style={styles.progressIconContainer}>
+              <Ionicons name="star-outline" size={36} color="#1E1E2E" />
             </View>
-            <Text style={styles.progressTitle}>Start gaining</Text>
-            <Text style={styles.progressTitle}>XP Points!</Text>
+            <Text style={styles.progressTitle}>Start gaining XP Points!</Text>
             <Text style={styles.progressValue}>{dashboard?.user?.xp || 0} XP</Text>
           </TouchableOpacity>
         </View>
@@ -142,7 +140,7 @@ export default function HomeScreen() {
         
         <View style={styles.actionsGrid}>
           <TouchableOpacity 
-            style={[styles.actionCard, styles.communityAction]}
+            style={styles.actionCard}
             onPress={() => router.push('/(tabs)/community')}
           >
             <Ionicons name="people" size={48} color="#FFFFFF" />
@@ -150,7 +148,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={[styles.actionCard, styles.assessmentAction]}
+            style={styles.actionCard}
             onPress={() => router.push('/(tabs)/practice')}
           >
             <Ionicons name="school" size={48} color="#FFFFFF" />
@@ -163,14 +161,14 @@ export default function HomeScreen() {
       {dashboard?.recommendations && dashboard.recommendations.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="sparkles" size={20} color="#FFD700" />
+            <Ionicons name="sparkles" size={20} color="#E6B800" />
             <Text style={[styles.sectionTitle, { marginLeft: 8, marginBottom: 0 }]}>
               AI Tips for You
             </Text>
           </View>
           {dashboard.recommendations.slice(0, 3).map((rec: string, index: number) => (
             <View key={index} style={styles.tipCard}>
-              <Ionicons name="bulb" size={20} color="#4ECDC4" />
+              <Ionicons name="bulb" size={20} color="#E6B800" />
               <Text style={styles.tipText}>{rec}</Text>
             </View>
           ))}
@@ -196,7 +194,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E1E2E',
   },
   heroSection: {
-    backgroundColor: '#4ECDC4',
+    backgroundColor: '#E6B800',
     paddingVertical: 40,
     paddingHorizontal: 24,
     paddingTop: 60,
@@ -207,7 +205,7 @@ const styles = StyleSheet.create({
   heroText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#1E1E2E',
     marginTop: 16,
     textAlign: 'center',
   },
@@ -227,7 +225,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   learningCard: {
-    backgroundColor: '#E8F4F8',
+    backgroundColor: '#FFF9E6',
     borderRadius: 20,
     padding: 20,
     marginBottom: 8,
@@ -237,6 +235,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  learningInfo: {
+    flex: 1,
   },
   unitTitle: {
     fontSize: 18,
@@ -260,9 +261,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: 12,
   },
   startButton: {
-    backgroundColor: '#4ECDC4',
+    backgroundColor: '#E6B800',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -270,45 +272,43 @@ const styles = StyleSheet.create({
   startButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#1E1E2E',
   },
   progressGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 12,
     marginBottom: 8,
   },
   progressCard: {
-    width: '31%',
-    aspectRatio: 0.9,
+    flex: 1,
+    backgroundColor: '#E6B800',
     borderRadius: 16,
-    padding: 12,
+    padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 140,
   },
-  streakCard: {
-    backgroundColor: '#4ECDC4',
-  },
-  goalCard: {
-    backgroundColor: '#4ECDC4',
-  },
-  xpCard: {
-    backgroundColor: '#4ECDC4',
-  },
-  progressIcon: {
-    marginBottom: 8,
+  progressIconContainer: {
+    width: 60,
+    height: 60,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
   progressTitle: {
     fontSize: 12,
-    color: '#FFFFFF',
+    color: '#1E1E2E',
     textAlign: 'center',
     fontWeight: '600',
+    marginBottom: 8,
+    lineHeight: 16,
   },
   progressValue: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginTop: 8,
+    color: '#1E1E2E',
   },
   actionsGrid: {
     flexDirection: 'row',
@@ -317,22 +317,17 @@ const styles = StyleSheet.create({
   },
   actionCard: {
     flex: 1,
+    backgroundColor: '#E6B800',
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 140,
   },
-  communityAction: {
-    backgroundColor: '#5DADE2',
-  },
-  assessmentAction: {
-    backgroundColor: '#5DADE2',
-  },
   actionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#1E1E2E',
     marginTop: 12,
     textAlign: 'center',
   },
@@ -353,7 +348,7 @@ const styles = StyleSheet.create({
   },
   seedButton: {
     flexDirection: 'row',
-    backgroundColor: '#FFD700',
+    backgroundColor: '#E6B800',
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 24,
