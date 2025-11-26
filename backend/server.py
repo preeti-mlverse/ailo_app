@@ -1211,6 +1211,218 @@ async def seed_database():
         "questions": len(questions)
     }
 
+# ============================================================================
+# NEW CONTENT ENDPOINTS FOR HIERARCHICAL LEARN TAB
+# ============================================================================
+
+@api_router.get("/topics/{topic_id}/subtopics")
+async def get_topic_subtopics(topic_id: str, current_user = Depends(get_current_user)):
+    """Get all subtopics for a given topic"""
+    user_id = current_user["user_id"]
+    
+    # Get topic info
+    topic = await db.topics.find_one({"topic_id": topic_id})
+    if not topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+    
+    # Get all subtopics for this topic
+    subtopics = await db.subtopics.find({"topic_id": topic_id}).sort("order", ASCENDING).to_list(100)
+    
+    # Get user progress for subtopics
+    subtopic_ids = [s["subtopic_id"] for s in subtopics]
+    progress_docs = await db.subtopic_progress.find({
+        "user_id": user_id,
+        "subtopic_id": {"$in": subtopic_ids}
+    }).to_list(100)
+    
+    progress_map = {p["subtopic_id"]: p for p in progress_docs}
+    
+    result = []
+    for subtopic in subtopics:
+        subtopic_id = subtopic["subtopic_id"]
+        progress = progress_map.get(subtopic_id, {})
+        
+        result.append({
+            "subtopic_id": subtopic_id,
+            "title": subtopic["title"],
+            "subtopic_title": subtopic.get("subtopic_title", ""),
+            "order": subtopic.get("order", 0),
+            "microcontent_count": subtopic.get("microcontent_count", 0),
+            "completed": progress.get("completed", False),
+            "progress": progress.get("progress", 0)
+        })
+    
+    return {
+        "topic": {
+            "topic_id": topic["topic_id"],
+            "title": topic["title"],
+            "topic_title": topic.get("topic_title", ""),
+            "chapter_id": topic["chapter_id"]
+        },
+        "subtopics": result
+    }
+
+
+@api_router.get("/subtopics/{subtopic_id}/microcontent")
+async def get_subtopic_microcontent(subtopic_id: str, current_user = Depends(get_current_user)):
+    """Get all microcontent cards for a given subtopic"""
+    user_id = current_user["user_id"]
+    
+    # Get subtopic info
+    subtopic = await db.subtopics.find_one({"subtopic_id": subtopic_id})
+    if not subtopic:
+        raise HTTPException(status_code=404, detail="Subtopic not found")
+    
+    # Get all microcontent for this subtopic
+    microcontent_list = await db.microcontent.find({"subtopic_id": subtopic_id}).sort("order", ASCENDING).to_list(100)
+    
+    # Get user progress
+    progress = await db.subtopic_progress.find_one({
+        "user_id": user_id,
+        "subtopic_id": subtopic_id
+    })
+    
+    cards = []
+    for mc in microcontent_list:
+        cards.append({
+            "microcontent_id": mc["microcontent_id"],
+            "order": mc.get("order", 0),
+            "story": mc.get("story_explanation", ""),
+            "relate": mc.get("analogy_explanation", ""),
+            "why": mc.get("core_text", mc.get("microcontent_text", "")),
+            "content_type": mc.get("content_type", "text"),
+            "related_code": mc.get("related_code", None)
+        })
+    
+    return {
+        "subtopic": {
+            "subtopic_id": subtopic["subtopic_id"],
+            "title": subtopic["title"],
+            "topic_id": subtopic["topic_id"],
+            "chapter_id": subtopic["chapter_id"]
+        },
+        "cards": cards,
+        "progress": progress.get("current_card", 0) if progress else 0,
+        "total_cards": len(cards)
+    }
+
+
+@api_router.post("/subtopics/{subtopic_id}/progress")
+async def update_subtopic_progress(
+    subtopic_id: str,
+    current_card: int,
+    completed: bool = False,
+    current_user = Depends(get_current_user)
+):
+    """Update user progress for a subtopic"""
+    user_id = current_user["user_id"]
+    
+    subtopic = await db.subtopics.find_one({"subtopic_id": subtopic_id})
+    if not subtopic:
+        raise HTTPException(status_code=404, detail="Subtopic not found")
+    
+    total_cards = subtopic.get("microcontent_count", 0)
+    progress_pct = (current_card / total_cards * 100) if total_cards > 0 else 0
+    
+    await db.subtopic_progress.update_one(
+        {"user_id": user_id, "subtopic_id": subtopic_id},
+        {"$set": {
+            "topic_id": subtopic["topic_id"],
+            "chapter_id": subtopic["chapter_id"],
+            "current_card": current_card,
+            "progress": progress_pct,
+            "completed": completed,
+            "updated_at": datetime.utcnow()
+        }},
+        upsert=True
+    )
+    
+    # Award XP if completed
+    if completed:
+        await db.users.update_one(
+            {"user_id": user_id},
+            {"$inc": {"xp": 15}}
+        )
+    
+    return {"message": "Progress updated", "xp_earned": 15 if completed else 0}
+
+
+@api_router.get("/subtopics/{subtopic_id}/quiz")
+async def get_subtopic_quiz(subtopic_id: str, current_user = Depends(get_current_user)):
+    """Get quiz questions for a completed subtopic"""
+    
+    # Get quiz questions for this subtopic
+    questions = await db.quiz_questions.find({"subtopic_id": subtopic_id}).to_list(100)
+    
+    # Select up to 5 questions
+    selected_questions = random.sample(questions, min(5, len(questions))) if questions else []
+    
+    quiz_id = str(uuid.uuid4())
+    
+    return {
+        "quiz_id": quiz_id,
+        "subtopic_id": subtopic_id,
+        "questions": [
+            {
+                "question_id": q["question_id"],
+                "question_text": q["question_text"],
+                "options": q["options"],
+                "difficulty": q.get("difficulty", "medium")
+            }
+            for q in selected_questions
+        ]
+    }
+
+
+@api_router.post("/quiz/submit")
+async def submit_quiz(
+    quiz_id: str,
+    subtopic_id: str,
+    answers: List[Dict[str, str]],
+    current_user = Depends(get_current_user)
+):
+    """Submit quiz answers and get results"""
+    user_id = current_user["user_id"]
+    
+    # Validate answers
+    correct_count = 0
+    total_questions = len(answers)
+    
+    for answer in answers:
+        question = await db.quiz_questions.find_one({"question_id": answer["question_id"]})
+        if question and question["correct_answer"] == answer["user_answer"]:
+            correct_count += 1
+    
+    score = (correct_count / total_questions * 100) if total_questions > 0 else 0
+    xp_earned = correct_count * 5  # 5 XP per correct answer
+    
+    # Update user XP
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$inc": {"xp": xp_earned}}
+    )
+    
+    # Store quiz result
+    await db.quiz_results.insert_one({
+        "user_id": user_id,
+        "quiz_id": quiz_id,
+        "subtopic_id": subtopic_id,
+        "score": score,
+        "correct_count": correct_count,
+        "total_questions": total_questions,
+        "xp_earned": xp_earned,
+        "completed_at": datetime.utcnow()
+    })
+    
+    return {
+        "score": score,
+        "correct_count": correct_count,
+        "total_questions": total_questions,
+        "xp_earned": xp_earned,
+        "message": "Great job!" if score >= 80 else "Keep practicing!"
+    }
+
+
 # Include router
 app.include_router(api_router)
 
