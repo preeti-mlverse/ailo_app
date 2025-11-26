@@ -1325,7 +1325,7 @@ async def update_subtopic_progress(
         raise HTTPException(status_code=404, detail="Subtopic not found")
     
     total_cards = subtopic.get("microcontent_count", 0)
-    progress_pct = (current_card / total_cards * 100) if total_cards > 0 else 0
+    progress_pct = (progress_data.current_card / total_cards * 100) if total_cards > 0 else 0
     
     await db.subtopic_progress.update_one(
         {"user_id": user_id, "subtopic_id": subtopic_id},
