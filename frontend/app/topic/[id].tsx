@@ -251,4 +251,12 @@ const styles = StyleSheet.create({
     color: '#4ECDC4',
     fontWeight: '600',
   },
+  progressBadge: {
+    marginTop: 8,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#E6B800',
+    fontWeight: '600',
+  },
 });
