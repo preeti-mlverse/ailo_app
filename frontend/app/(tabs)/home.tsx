@@ -6,13 +6,16 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Image,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 import { NovaMascot } from '../../components/NovaMascot';
 import { dashboardAPI, seedAPI } from '../../utils/api';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { user } = useAuth();
   const [dashboard, setDashboard] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -59,8 +62,6 @@ export default function HomeScreen() {
     );
   }
 
-  const isFirstTime = !dashboard || dashboard.progress.completed_chapters === 0;
-
   return (
     <ScrollView
       style={styles.container}
@@ -68,100 +69,109 @@ export default function HomeScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFD700" />
       }
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>
-            {isFirstTime ? 'Welcome!' : 'Welcome back,'}
-          </Text>
-          <Text style={styles.userName}>{user?.full_name || 'Student'}</Text>
-        </View>
-        <NovaMascot animation="wave" size={60} />
+      {/* Hero Section */}
+      <View style={styles.heroSection}>
+        <NovaMascot animation="wave" size={120} />
+        <Text style={styles.heroText}>Ready to start your AI Journey!</Text>
       </View>
 
-      {/* Stats Cards */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Ionicons name="flame" size={32} color="#FF6B6B" />
-          <Text style={styles.statValue}>{dashboard?.user?.streak || 0}</Text>
-          <Text style={styles.statLabel}>Day Streak</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Ionicons name="star" size={32} color="#FFD700" />
-          <Text style={styles.statValue}>{dashboard?.user?.xp || 0}</Text>
-          <Text style={styles.statLabel}>Total XP</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Ionicons name="trending-up" size={32} color="#4ECDC4" />
-          <Text style={styles.statValue}>Lv {dashboard?.user?.level || 1}</Text>
-          <Text style={styles.statLabel}>Level</Text>
-        </View>
-      </View>
-
-      {/* Daily Goal */}
+      {/* Learning Journey Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Today's Goal</Text>
-        <View style={styles.goalCard}>
-          <View style={styles.goalHeader}>
-            <Text style={styles.goalText}>Study Time</Text>
-            <Text style={styles.goalProgress}>
-              {dashboard?.daily_goal?.completed_minutes || 0} /{' '}
-              {dashboard?.daily_goal?.target_minutes || 30} min
-            </Text>
+        <Text style={styles.sectionTitle}>Your Learning Journey</Text>
+        
+        <View style={styles.learningCard}>
+          <View style={styles.learningHeader}>
+            <View>
+              <Text style={styles.unitTitle}>Unit 1: Python Programming</Text>
+              <View style={styles.learningMeta}>
+                <Ionicons name="list" size={16} color="#A0A0B0" />
+                <Text style={styles.metaText}>11 Topics • 75 minutes</Text>
+              </View>
+            </View>
+            <View style={styles.learningIcon}>
+              <Ionicons name="code-slash" size={32} color="#FFD700" />
+            </View>
           </View>
-          <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  width: `${
-                    ((dashboard?.daily_goal?.completed_minutes || 0) /
-                      (dashboard?.daily_goal?.target_minutes || 30)) *
-                    100
-                  }%`,
-                },
-              ]}
-            />
-          </View>
+          
+          <TouchableOpacity 
+            style={styles.startButton}
+            onPress={() => router.push('/(tabs)/learn')}
+          >
+            <Text style={styles.startButtonText}>Start Learning</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Progress Overview */}
-      {dashboard?.progress && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Learning Progress</Text>
-          <View style={styles.progressCard}>
-            <View style={styles.progressRow}>
-              <Text style={styles.progressLabel}>Chapters Completed</Text>
-              <Text style={styles.progressValue}>
-                {dashboard.progress.completed_chapters} / {dashboard.progress.total_chapters}
-              </Text>
+      {/* Track Progress Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Track Your Progress</Text>
+        
+        <View style={styles.progressGrid}>
+          <TouchableOpacity style={[styles.progressCard, styles.streakCard]}>
+            <View style={styles.progressIcon}>
+              <Ionicons name="flame" size={40} color="#FF6B6B" />
             </View>
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${dashboard.progress.percentage}%` },
-                ]}
-              />
+            <Text style={styles.progressTitle}>Start your</Text>
+            <Text style={styles.progressTitle}>streak today!</Text>
+            <Text style={styles.progressValue}>{dashboard?.user?.streak || 0} days</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.progressCard, styles.goalCard]}>
+            <View style={styles.progressIcon}>
+              <Ionicons name="target" size={40} color="#E74C3C" />
             </View>
-          </View>
+            <Text style={styles.progressTitle}>Set Your Daily</Text>
+            <Text style={styles.progressTitle}>Goal!</Text>
+            <Text style={styles.progressValue}>{dashboard?.daily_goal?.target_minutes || 30} min</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.progressCard, styles.xpCard]}>
+            <View style={styles.progressIcon}>
+              <Ionicons name="star" size={40} color="#FFD700" />
+            </View>
+            <Text style={styles.progressTitle}>Start gaining</Text>
+            <Text style={styles.progressTitle}>XP Points!</Text>
+            <Text style={styles.progressValue}>{dashboard?.user?.xp || 0} XP</Text>
+          </TouchableOpacity>
         </View>
-      )}
+      </View>
+
+      {/* Quick Actions Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        
+        <View style={styles.actionsGrid}>
+          <TouchableOpacity 
+            style={[styles.actionCard, styles.communityAction]}
+            onPress={() => router.push('/(tabs)/community')}
+          >
+            <Ionicons name="people" size={48} color="#FFFFFF" />
+            <Text style={styles.actionTitle}>Explore communities</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionCard, styles.assessmentAction]}
+            onPress={() => router.push('/(tabs)/practice')}
+          >
+            <Ionicons name="school" size={48} color="#FFFFFF" />
+            <Text style={styles.actionTitle}>Take an assessment!</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* AI Recommendations */}
       {dashboard?.recommendations && dashboard.recommendations.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="sparkles" size={20} color="#FFD700" />
-            <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>
-              AI Recommendations for You
+            <Text style={[styles.sectionTitle, { marginLeft: 8, marginBottom: 0 }]}>
+              AI Tips for You
             </Text>
           </View>
-          {dashboard.recommendations.map((rec: string, index: number) => (
-            <View key={index} style={styles.recommendationCard}>
-              <Ionicons name="checkmark-circle" size={20} color="#4ECDC4" />
-              <Text style={styles.recommendationText}>{rec}</Text>
+          {dashboard.recommendations.slice(0, 3).map((rec: string, index: number) => (
+            <View key={index} style={styles.tipCard}>
+              <Ionicons name="bulb" size={20} color="#4ECDC4" />
+              <Text style={styles.tipText}>{rec}</Text>
             </View>
           ))}
         </View>
@@ -175,7 +185,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       )}
 
-      <View style={{ height: 32 }} />
+      <View style={{ height: 100 }} />
     </ScrollView>
   );
 }
@@ -185,50 +195,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1E1E2E',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 24,
-    paddingTop: 60,
-  },
-  greeting: {
-    fontSize: 16,
-    color: '#A0A0B0',
-  },
-  userName: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginTop: 4,
-  },
-  statsContainer: {
-    flexDirection: 'row',
+  heroSection: {
+    backgroundColor: '#4ECDC4',
+    paddingVertical: 40,
     paddingHorizontal: 24,
-    gap: 12,
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#2D2D3D',
-    borderRadius: 16,
-    padding: 16,
+    paddingTop: 60,
     alignItems: 'center',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
-  statValue: {
+  heroText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginTop: 8,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#A0A0B0',
-    marginTop: 4,
+    marginTop: 16,
+    textAlign: 'center',
   },
   section: {
     paddingHorizontal: 24,
-    marginBottom: 24,
+    marginTop: 24,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -241,71 +226,129 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 16,
   },
-  goalCard: {
-    backgroundColor: '#2D2D3D',
-    borderRadius: 16,
+  learningCard: {
+    backgroundColor: '#E8F4F8',
+    borderRadius: 20,
     padding: 20,
+    marginBottom: 8,
   },
-  goalHeader: {
+  learningHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  goalText: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  goalProgress: {
-    fontSize: 16,
-    color: '#FFD700',
+  unitTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#1E1E2E',
+    marginBottom: 8,
   },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#3D3D4D',
-    borderRadius: 4,
-    overflow: 'hidden',
+  learningMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#FFD700',
-    borderRadius: 4,
+  metaText: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  learningIcon: {
+    width: 60,
+    height: 60,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  startButton: {
+    backgroundColor: '#4ECDC4',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  startButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  progressGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 8,
   },
   progressCard: {
-    backgroundColor: '#2D2D3D',
+    width: '31%',
+    aspectRatio: 0.9,
     borderRadius: 16,
-    padding: 20,
-  },
-  progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    padding: 12,
     alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'center',
   },
-  progressLabel: {
-    fontSize: 16,
+  streakCard: {
+    backgroundColor: '#4ECDC4',
+  },
+  goalCard: {
+    backgroundColor: '#4ECDC4',
+  },
+  xpCard: {
+    backgroundColor: '#4ECDC4',
+  },
+  progressIcon: {
+    marginBottom: 8,
+  },
+  progressTitle: {
+    fontSize: 12,
     color: '#FFFFFF',
+    textAlign: 'center',
+    fontWeight: '600',
   },
   progressValue: {
     fontSize: 16,
-    color: '#FFD700',
     fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginTop: 8,
   },
-  recommendationCard: {
+  actionsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 8,
+  },
+  actionCard: {
+    flex: 1,
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 140,
+  },
+  communityAction: {
+    backgroundColor: '#5DADE2',
+  },
+  assessmentAction: {
+    backgroundColor: '#5DADE2',
+  },
+  actionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  tipCard: {
     flexDirection: 'row',
     backgroundColor: '#2D2D3D',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     alignItems: 'flex-start',
+    gap: 12,
   },
-  recommendationText: {
+  tipText: {
     flex: 1,
     fontSize: 14,
     color: '#FFFFFF',
-    marginLeft: 12,
     lineHeight: 20,
   },
   seedButton: {
@@ -314,6 +357,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 24,
+    marginTop: 16,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
