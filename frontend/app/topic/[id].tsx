@@ -96,7 +96,9 @@ export default function TopicDetailScreen() {
     if (currentCardIndex < lesson.cards.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1);
       setActiveMode('story'); // Reset to story mode
-    }
+    } else {
+      // Navigate to celebration screen when all cards completed
+      router.push(`/quiz/celebration?topicId=${id}&topicTitle=${lesson.title}`);\n    }
   };
 
   const handlePrevious = () => {
