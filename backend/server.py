@@ -1377,11 +1377,14 @@ async def get_subtopic_quiz(subtopic_id: str, current_user = Depends(get_current
     }
 
 
+class QuizSubmission(BaseModel):
+    quiz_id: str
+    subtopic_id: str
+    answers: List[Dict[str, str]]
+
 @api_router.post("/quiz/submit")
 async def submit_quiz(
-    quiz_id: str,
-    subtopic_id: str,
-    answers: List[Dict[str, str]],
+    submission: QuizSubmission,
     current_user = Depends(get_current_user)
 ):
     """Submit quiz answers and get results"""
