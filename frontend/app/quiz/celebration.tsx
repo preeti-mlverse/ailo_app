@@ -33,9 +33,10 @@ export default function CelebrationScreen() {
     router.push(`/quiz?subtopicId=${subtopicId}&subtopicTitle=${encodeURIComponent(subtopicTitle as string || 'Quiz')}`);
   };
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     // Go back to subtopics list
     router.back();
+    router.back(); // Go back twice to get to subtopics list
   };
 
   const handleSkipQuiz = () => {
