@@ -98,7 +98,8 @@ export default function TopicDetailScreen() {
       setActiveMode('story'); // Reset to story mode
     } else {
       // Navigate to celebration screen when all cards completed
-      router.push(`/quiz/celebration?topicId=${id}&topicTitle=${lesson.title}`);\n    }
+      router.push(`/quiz/celebration?topicId=${id}&topicTitle=${encodeURIComponent(lesson.title)}`);
+    }
   };
 
   const handlePrevious = () => {
