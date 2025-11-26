@@ -42,6 +42,13 @@ export const dashboardAPI = {
 export const learningAPI = {
   getChapters: () => api.get('/chapters'),
   getTopics: (chapterId: string) => api.get(`/chapters/${chapterId}/topics`),
+  getSubtopics: (topicId: string) => api.get(`/topics/${topicId}/subtopics`),
+  getMicrocontent: (subtopicId: string) => api.get(`/subtopics/${subtopicId}/microcontent`),
+  updateSubtopicProgress: (subtopicId: string, currentCard: number, completed: boolean) =>
+    api.post(`/subtopics/${subtopicId}/progress`, { current_card: currentCard, completed }),
+  getSubtopicQuiz: (subtopicId: string) => api.get(`/subtopics/${subtopicId}/quiz`),
+  submitQuiz: (quizId: string, subtopicId: string, answers: any[]) =>
+    api.post('/quiz/submit', { quiz_id: quizId, subtopic_id: subtopicId, answers }),
   updateProgress: (topicId: string, progress: number, position: number) =>
     api.post(`/topics/${topicId}/progress`, { progress, position }),
 };
