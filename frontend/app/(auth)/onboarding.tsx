@@ -14,19 +14,50 @@ import { onboardingAPI } from '../../utils/api';
 
 const QUIZ_QUESTIONS = [
   {
-    id: 'q1',
-    question: 'What time of day do you prefer to study?',
-    options: ['Morning', 'Afternoon', 'Evening', 'Night'],
+    id: 'age',
+    question: 'What is your age?',
+    type: 'input',
+    inputType: 'number',
+    placeholder: 'Enter your age',
   },
   {
-    id: 'q2',
-    question: 'How do you learn best?',
-    options: ['Reading', 'Videos', 'Practice Problems', 'Interactive Activities'],
+    id: 'class',
+    question: 'Which class are you in?',
+    type: 'input',
+    inputType: 'number',
+    placeholder: 'Enter your class (e.g., 10, 12)',
   },
   {
-    id: 'q3',
+    id: 'board',
+    question: 'Which board are you studying in?',
+    options: ['CBSE', 'ICSE', 'State Board', 'IB', 'Other'],
+  },
+  {
+    id: 'school',
+    question: 'What is your school name? (Optional)',
+    type: 'input',
+    inputType: 'text',
+    placeholder: 'Enter your school name',
+    optional: true,
+  },
+  {
+    id: 'city',
+    question: 'Which city are you from? (Optional)',
+    type: 'input',
+    inputType: 'text',
+    placeholder: 'Enter your city',
+    optional: true,
+  },
+  {
+    id: 'goal',
     question: 'What is your learning goal?',
-    options: ['Improve Grades', 'Prepare for Exams', 'Learn New Topics', 'Stay Ahead'],
+    options: ['Curriculum-based Learning', 'Industry-level AI Skills', 'Both'],
+    multiSelect: false,
+  },
+  {
+    id: 'current_level',
+    question: 'What is your current AI knowledge level?',
+    options: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
   },
 ];
 
