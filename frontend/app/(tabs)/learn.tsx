@@ -6,85 +6,42 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { NovaMascot } from '../../components/NovaMascot';
 import { Ionicons } from '@expo/vector-icons';
-
-const CHAPTERS = [
-  {
-    id: 'unit1',
-    title: 'Unit 1: Python Programming',
-    subtitle: 'Your foundation for AI development',
-    topics: 11,
-    duration: 75,
-    icon: 'logo-python',
-  },
-  {
-    id: 'unit2',
-    title: 'Unit 2: Data Science Methodology',
-    subtitle: 'An Analytic Approach to Capstone Project',
-    topics: 8,
-    duration: 60,
-    icon: 'analytics',
-  },
-  {
-    id: 'unit3',
-    title: 'Unit 3: Making Machines See',
-    subtitle: 'Computer Vision fundamentals',
-    topics: 10,
-    duration: 80,
-    icon: 'eye',
-  },
-  {
-    id: 'unit4',
-    title: 'Unit 4: AI with Orange Data Mining Tool',
-    subtitle: 'Visual programming for AI',
-    topics: 7,
-    duration: 50,
-    icon: 'color-palette',
-  },
-  {
-    id: 'unit5',
-    title: 'Unit 5: Introduction to Big Data and Data Analytics',
-    subtitle: 'Working with large-scale datasets',
-    topics: 9,
-    duration: 70,
-    icon: 'server',
-  },
-  {
-    id: 'unit6',
-    title: 'Unit 6: Understanding Neural Networks',
-    subtitle: 'Deep learning foundations',
-    topics: 12,
-    duration: 90,
-    icon: 'git-network',
-  },
-  {
-    id: 'unit7',
-    title: 'Unit 7: Generative AI',
-    subtitle: 'Creating with AI models',
-    topics: 10,
-    duration: 85,
-    icon: 'sparkles',
-  },
-  {
-    id: 'unit8',
-    title: 'Unit 8: Data Storytelling',
-    subtitle: 'Communicating insights effectively',
-    topics: 8,
-    duration: 55,
-    icon: 'bar-chart',
-  },
-];
+import { learningAPI } from '../../utils/api';
 
 export default function LearnScreen() {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [chapters, setChapters] = useState<any[]>([]);
 
-  const onRefresh = () => {
+  useEffect(() => {
+    fetchChapters();
+  }, []);
+
+  const fetchChapters = async () => {
+    try {
+      setLoading(true);
+      const response = await learningAPI.getChapters();
+      console.log('Chapters fetched:', response.data);
+      setChapters(response.data);
+    } catch (error) {
+      console.error('Error fetching chapters:', error);
+      Alert.alert('Error', 'Failed to load chapters');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
+    await fetchChapters();
+    setRefreshing(false);
   };
 
   return (
