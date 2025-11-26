@@ -54,9 +54,8 @@ export const NovaMascot: React.FC<NovaMascotProps> = ({ animation = 'idle', size
     outputRange: ['-15deg', '15deg'],
   });
 
-  // Using placeholder base64 image for Nova (yellow bird mascot)
-  // In production, replace with actual mascot image
-  const mascotSource = { uri: 'https://customer-assets.emergentagent.com/job_a329ade9-5d70-4ea1-947a-55c6e676cf50/artifacts/jp064i2q_Edtech_Mascot_Animation_Generation.gif' };
+  // Nova mascot - optimized GIF with transparent background
+  const mascotSource = require('../assets/mascot/nova.gif');
 
   return (
     <Animated.View
