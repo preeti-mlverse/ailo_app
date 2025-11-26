@@ -106,11 +106,19 @@ export default function LearnScreen() {
           chapters.map((chapter: any, index: number) => (
             <TouchableOpacity
               key={chapter.chapter_id}
-              style={styles.chapterCard}
+              style={[
+                styles.chapterCard,
+                chapter.locked && styles.lockedCard
+              ]}
               onPress={() => {
+                if (chapter.locked) {
+                  Alert.alert('Locked', 'Complete previous chapters to unlock this content!');
+                  return;
+                }
                 console.log('Navigating to chapter:', chapter.chapter_id);
                 router.push(`/chapter/${chapter.chapter_id}`);
               }}
+              disabled={chapter.locked}
             >
               <View style={styles.chapterNumber}>
                 <Text style={styles.chapterNumberText}>{index + 1}</Text>
