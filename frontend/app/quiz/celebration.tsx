@@ -44,7 +44,10 @@ export default function CelebrationScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Animated celebration */}
         <Animated.View
           style={[
@@ -56,7 +59,7 @@ export default function CelebrationScreen() {
             <Ionicons name="trophy" size={80} color="#E6B800" />
           </View>
           
-          <NovaMascot animation="happy" size={120} />
+          <NovaMascot animation="happy" size={100} />
           
           <Text style={styles.title}>🎉 Subtopic Complete! 🎉</Text>
           <Text style={styles.subtitle}>
@@ -113,7 +116,7 @@ export default function CelebrationScreen() {
             <Ionicons name="arrow-forward" size={20} color="#E6B800" />
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
