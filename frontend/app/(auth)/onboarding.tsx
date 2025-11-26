@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -30,6 +31,7 @@ const QUIZ_QUESTIONS = [
   {
     id: 'board',
     question: 'Which board are you studying in?',
+    type: 'options',
     options: ['CBSE', 'ICSE', 'State Board', 'IB', 'Other'],
   },
   {
@@ -51,12 +53,13 @@ const QUIZ_QUESTIONS = [
   {
     id: 'goal',
     question: 'What is your learning goal?',
+    type: 'options',
     options: ['Curriculum-based Learning', 'Industry-level AI Skills', 'Both'],
-    multiSelect: false,
   },
   {
     id: 'current_level',
     question: 'What is your current AI knowledge level?',
+    type: 'options',
     options: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
   },
 ];
@@ -66,18 +69,37 @@ export default function OnboardingScreen() {
   const { refreshUser } = useAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
+  const [inputValue, setInputValue] = useState('');
   const [dailyGoal, setDailyGoal] = useState(30);
   const [showGoalSetting, setShowGoalSetting] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const question = QUIZ_QUESTIONS[currentQuestion];
+
   const handleAnswer = (answer: string) => {
-    const questionId = QUIZ_QUESTIONS[currentQuestion].id;
+    const questionId = question.id;
     setAnswers({ ...answers, [questionId]: answer });
 
     if (currentQuestion < QUIZ_QUESTIONS.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
+      setInputValue('');
     } else {
       setShowGoalSetting(true);
+    }
+  };
+
+  const handleInputSubmit = () => {
+    if (!inputValue.trim() && !question.optional) {
+      Alert.alert('Required', 'Please enter a value');
+      return;
+    }
+
+    handleAnswer(inputValue.trim() || 'Not provided');
+  };
+
+  const handleSkip = () => {
+    if (question.optional) {
+      handleAnswer('Not provided');
     }
   };
 
@@ -115,10 +137,10 @@ export default function OnboardingScreen() {
         <View style={styles.content}>
           <NovaMascot animation="happy" size={150} />
           <Text style={styles.title}>Almost Done!</Text>
-          <Text style={styles.subtitle}>Set your daily learning goal</Text>
+          <Text style={styles.subtitle}>How much time can you commit daily to learn AI?</Text>
 
           <View style={styles.goalContainer}>
-            <Text style={styles.goalLabel}>Daily Goal: {dailyGoal} minutes</Text>
+            <Text style={styles.goalLabel}>Daily Commitment: {dailyGoal} minutes</Text>
             <View style={styles.goalButtons}>
               <TouchableOpacity
                 style={[styles.goalButton, dailyGoal === 15 && styles.goalButtonActive]}
@@ -168,15 +190,13 @@ export default function OnboardingScreen() {
             disabled={loading}
           >
             <Text style={styles.buttonText}>
-              {loading ? 'Setting up...' : 'Start Learning!'}
+              {loading ? 'Setting up...' : 'Start Learning AI!'}
             </Text>
           </TouchableOpacity>
         </View>
       </View>
     );
   }
-
-  const question = QUIZ_QUESTIONS[currentQuestion];
 
   return (
     <View style={styles.container}>
@@ -201,17 +221,44 @@ export default function OnboardingScreen() {
 
         <Text style={styles.question}>{question.question}</Text>
 
-        <View style={styles.options}>
-          {question.options.map((option, index) => (
+        {question.type === 'input' ? (
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder={question.placeholder}
+              placeholderTextColor="#666"
+              value={inputValue}
+              onChangeText={setInputValue}
+              keyboardType={question.inputType === 'number' ? 'number-pad' : 'default'}
+            />
             <TouchableOpacity
-              key={index}
-              style={styles.optionButton}
-              onPress={() => handleAnswer(option)}
+              style={styles.submitButton}
+              onPress={handleInputSubmit}
             >
-              <Text style={styles.optionText}>{option}</Text>
+              <Text style={styles.submitButtonText}>Next</Text>
             </TouchableOpacity>
-          ))}
-        </View>
+            {question.optional && (
+              <TouchableOpacity
+                style={styles.skipButton}
+                onPress={handleSkip}
+              >
+                <Text style={styles.skipButtonText}>Skip</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          <View style={styles.options}>
+            {question.options?.map((option, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.optionButton}
+                onPress={() => handleAnswer(option)}
+              >
+                <Text style={styles.optionText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -273,6 +320,39 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 32,
     textAlign: 'center',
+  },
+  inputContainer: {
+    width: '100%',
+  },
+  input: {
+    backgroundColor: '#2D2D3D',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: '#FFFFFF',
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#3D3D4D',
+  },
+  submitButton: {
+    backgroundColor: '#FFD700',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  submitButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1E1E2E',
+  },
+  skipButton: {
+    padding: 12,
+    alignItems: 'center',
+  },
+  skipButtonText: {
+    fontSize: 16,
+    color: '#A0A0B0',
   },
   options: {
     width: '100%',
