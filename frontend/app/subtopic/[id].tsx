@@ -42,7 +42,21 @@ export default function SubtopicDetailScreen() {
     try {
       setLoading(true);
       const response = await learningAPI.getMicrocontent(id as string);
-      setMicrocontent(response.data.cards);
+      console.log('Fetched microcontent for subtopic:', id);
+      console.log('Response:', response.data);
+      
+      const cards = response.data.cards || [];
+      console.log('Number of cards:', cards.length);
+      
+      if (cards.length > 0) {
+        console.log('Sample card structure:', {
+          hasStory: !!cards[0].story,
+          hasRelate: !!cards[0].relate,
+          hasWhy: !!cards[0].why,
+        });
+      }
+      
+      setMicrocontent(cards);
       setSubtopicInfo(response.data.subtopic);
       setCurrentCardIndex(response.data.progress || 0);
     } catch (error) {
