@@ -170,11 +170,9 @@ export default function SubtopicDetailScreen() {
           <Text style={styles.chapterName}>Python Programming</Text>
           <Text style={styles.topicName}>{subtopicInfo?.title || 'Loading...'}</Text>
         </View>
-        <View style={styles.headerRight}>
-          <Text style={styles.cardCounter}>
-            {currentCardIndex + 1}/{microcontent.length}
-          </Text>
-        </View>
+        <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+          <Text style={styles.skipButtonText}>Skip</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content}>
