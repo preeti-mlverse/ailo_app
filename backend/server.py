@@ -64,17 +64,12 @@ class UserBase(BaseModel):
     full_name: str
     role: str = "student"
 
-class UserCreate(UserBase):
+class UserCreate(BaseModel):
+    email: EmailStr
+    mobile: str
     password: str
-    age: Optional[int] = None
-    grade: Optional[int] = None
-    board: Optional[str] = None
-    school: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    language: Optional[str] = "English"
-    parent_email: Optional[str] = None
-    parent_phone: Optional[str] = None
+    role: str = "student"
+    full_name: Optional[str] = "User"
     terms_accepted: bool = False
     privacy_accepted: bool = False
 
