@@ -1307,11 +1307,14 @@ async def get_subtopic_microcontent(subtopic_id: str, current_user = Depends(get
     }
 
 
+class SubtopicProgressUpdate(BaseModel):
+    current_card: int
+    completed: bool = False
+
 @api_router.post("/subtopics/{subtopic_id}/progress")
 async def update_subtopic_progress(
     subtopic_id: str,
-    current_card: int,
-    completed: bool = False,
+    progress_data: SubtopicProgressUpdate,
     current_user = Depends(get_current_user)
 ):
     """Update user progress for a subtopic"""
