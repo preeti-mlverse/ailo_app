@@ -1,47 +1,67 @@
-diff --git a/backend/server.py b/backend/server.py
-index ea9d9b7..9e70346 100644
---- a/backend/server.py
-+++ b/backend/server.py
-@@ -64,17 +64,12 @@ class UserBase(BaseModel):
-     full_name: str
-     role: str = "student"
- 
--class UserCreate(UserBase):
-+class UserCreate(BaseModel):
-+    email: EmailStr
-+    mobile: str
-     password: str
--    age: Optional[int] = None
--    grade: Optional[int] = None
--    board: Optional[str] = None
--    school: Optional[str] = None
--    city: Optional[str] = None
--    state: Optional[str] = None
--    language: Optional[str] = "English"
--    parent_email: Optional[str] = None
--    parent_phone: Optional[str] = None
-+    role: str = "student"
-+    full_name: Optional[str] = "User"
-     terms_accepted: bool = False
-     privacy_accepted: bool = False
- 
-@@ -224,18 +219,10 @@ async def signup(user_data: UserCreate):
-     user_doc = {
-         "user_id": user_id,
-         "email": user_data.email,
-+        "mobile": user_data.mobile,
-         "password": hashed_password,
-         "full_name": user_data.full_name,
-         "role": user_data.role,
--        "age": user_data.age,
--        "grade": user_data.grade,
--        "board": user_data.board,
--        "school": user_data.school,
--        "city": user_data.city,
--        "state": user_data.state,
--        "language": user_data.language,
--        "parent_email": user_data.parent_email,
--        "parent_phone": user_data.parent_phone,
-         "terms_accepted": user_data.terms_accepted,
-         "privacy_accepted": user_data.privacy_accepted,
-         "created_at": datetime.utcnow(),
+diff --git a/frontend/app/chapter/[id].tsx b/frontend/app/chapter/[id].tsx
+index 6906ece..f9afa8c 100644
+--- a/frontend/app/chapter/[id].tsx
++++ b/frontend/app/chapter/[id].tsx
+@@ -185,8 +185,8 @@ export default function ChapterDetailScreen() {
+                           style={styles.lessonRow}
+                           onPress={() => {
+                             toggleLesson(lesson.id);
+-                            // Navigate to lesson detail
+-                            router.push(`/topic/${lesson.id}`);
++                            // Navigate to subtopics list
++                            router.push(`/subtopics/${lesson.id}`);
+                           }}
+                         >
+                           <TouchableOpacity
+diff --git a/model.patch b/model.patch
+index 338d0db..e69de29 100644
+--- a/model.patch
++++ b/model.patch
+@@ -1,47 +0,0 @@
+-diff --git a/backend/server.py b/backend/server.py
+-index ea9d9b7..9e70346 100644
+---- a/backend/server.py
+-+++ b/backend/server.py
+-@@ -64,17 +64,12 @@ class UserBase(BaseModel):
+-     full_name: str
+-     role: str = "student"
+- 
+--class UserCreate(UserBase):
+-+class UserCreate(BaseModel):
+-+    email: EmailStr
+-+    mobile: str
+-     password: str
+--    age: Optional[int] = None
+--    grade: Optional[int] = None
+--    board: Optional[str] = None
+--    school: Optional[str] = None
+--    city: Optional[str] = None
+--    state: Optional[str] = None
+--    language: Optional[str] = "English"
+--    parent_email: Optional[str] = None
+--    parent_phone: Optional[str] = None
+-+    role: str = "student"
+-+    full_name: Optional[str] = "User"
+-     terms_accepted: bool = False
+-     privacy_accepted: bool = False
+- 
+-@@ -224,18 +219,10 @@ async def signup(user_data: UserCreate):
+-     user_doc = {
+-         "user_id": user_id,
+-         "email": user_data.email,
+-+        "mobile": user_data.mobile,
+-         "password": hashed_password,
+-         "full_name": user_data.full_name,
+-         "role": user_data.role,
+--        "age": user_data.age,
+--        "grade": user_data.grade,
+--        "board": user_data.board,
+--        "school": user_data.school,
+--        "city": user_data.city,
+--        "state": user_data.state,
+--        "language": user_data.language,
+--        "parent_email": user_data.parent_email,
+--        "parent_phone": user_data.parent_phone,
+-         "terms_accepted": user_data.terms_accepted,
+-         "privacy_accepted": user_data.privacy_accepted,
+-         "created_at": datetime.utcnow(),
