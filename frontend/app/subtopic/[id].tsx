@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { NovaMascot } from '../../components/ai/NovaMascot';
+import { NovaMascot } from '../../components/NovaMascot';
 import * as Speech from 'expo-speech';
 import { learningAPI } from '../../utils/api';
 
