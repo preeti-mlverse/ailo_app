@@ -164,6 +164,16 @@ export default function SubtopicDetailScreen() {
 
   const currentCard = microcontent[currentCardIndex];
 
+  // Safety check for currentCard
+  if (!currentCard) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#E6B800" />
+        <Text style={styles.loadingText}>Loading card...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Header */}
