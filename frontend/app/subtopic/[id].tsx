@@ -397,6 +397,19 @@ const styles = StyleSheet.create({
   headerRight: {
     padding: 8,
   },
+  skipButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#E6B800',
+    borderRadius: 20,
+  },
+  skipButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#E6B800',
+  },
   cardCounter: {
     fontSize: 14,
     fontWeight: 'bold',
